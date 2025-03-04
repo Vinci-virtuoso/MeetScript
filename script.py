@@ -6,7 +6,6 @@ import pyaudio
 import wave
 from datetime import datetime
 import os
-
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options
@@ -250,8 +249,8 @@ class GoogleMeetAutoRecorder:
 
 def main():
     # Update with your credentials
-    google_username = "5eun3isiyktv@gmail.com"
-    google_password = "Iaminevitable"
+    google_username = "email@gmail.com"
+    google_password = "password"
     meet_url = input("Enter your Google Meet URL: ").strip()
     
     # Recording duration (in seconds)
