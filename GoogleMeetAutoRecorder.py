@@ -1,3 +1,4 @@
+import os
 import time
 import logging
 import threading
@@ -5,7 +6,6 @@ import pyautogui
 import pyaudio
 import wave
 from datetime import datetime
-import os
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options
@@ -16,7 +16,7 @@ from selenium.webdriver.support import expected_conditions as EC
 class GoogleMeetAutoRecorder:
     def __init__(self, 
                  driver_path=r'C:\Users\ayo\Webdriver\msedgedriver.exe', 
-                 join_template_path=r'C:\Users\ayo\MeetScript\ask_to_join.png',
+                 join_template_path=r'C:\Users\ayo\MeetScript\directions\ask_to_join.png',
                  recording_duration=3600):  # Default 1 hour recording
         # WebDriver Setup
         self.driver_path = driver_path
@@ -82,7 +82,7 @@ class GoogleMeetAutoRecorder:
         """
         try:
             time.sleep(2)
-            continue_button_location = pyautogui.locateOnScreen('continue_without_media.png', confidence=0.8)
+            continue_button_location = pyautogui.locateOnScreen(r'C:\Users\ayo\MeetScript\directions\continue_without_media.png', confidence=0.8)
             if continue_button_location:
                 x, y = pyautogui.center(continue_button_location)
                 pyautogui.moveTo(x, y, duration=0.5)
@@ -106,6 +106,36 @@ class GoogleMeetAutoRecorder:
         except Exception as e:
             self.logger.error(f"Failed to navigate to Google Meet URL: {str(e)}")
             return False
+
+    def click_sign_in(self):
+        """
+        Looks for the 'Sign in' button and clicks it.
+        This should be called after handling media permissions and before login.
+        """
+        wait = WebDriverWait(self.driver, 15)
+        try:
+            # Allow additional time for the meeting page to load after media permissions have been handled.
+            time.sleep(5)
+            
+            # look for the "Sign in" button and click it using Selenium
+            sign_in_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='yDmH0d']/c-wiz/div/div/div[38]/div[4]/div/div[2]/div[1]/div[2]/div[1]/div")))
+            sign_in_button.click()
+            self.logger.info("Clicked 'Sign in' button via Selenium")
+            return True
+        except Exception as e:
+            self.logger.error(f"Selenium failed to click 'Sign in' button: {e}. Trying pyautogui as fallback.")
+            # Fallback: use pyautogui to locate and click the button using an image template.
+            time.sleep(2)
+            sign_in_location = pyautogui.locateOnScreen('sign_in_button.png', confidence=0.8)
+            if sign_in_location:
+                x, y = pyautogui.center(sign_in_location)
+                pyautogui.moveTo(x, y, duration=0.5)
+                pyautogui.click()
+                self.logger.info("Clicked 'Sign in' button via pyautogui")
+                return True
+            else:
+                self.logger.error("Failed to locate 'Sign in' button using pyautogui")
+                return False
 
     def login(self, username, password):
         """
@@ -268,6 +298,12 @@ def main():
         # Navigate to Meet URL
         if not meet_recorder.go_to_meet(meet_url):
             print("Failed to navigate to Meet URL, aborting.")
+            return
+
+         # Click the 'Sign in' button before attempting the login.
+        if not meet_recorder.click_sign_in():
+            print("Failed to click the 'Sign in' button, aborting.")
+            meet_bot.cleanup()
             return
 
         # Login
