@@ -9,7 +9,7 @@ from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import pyautogui  # Ensure that pyautogui is installed
+import pyautogui  
 
 class GoogleMeetRecorder:
     def __init__(self, 
@@ -42,18 +42,22 @@ class GoogleMeetRecorder:
         self.logger.setLevel(logging.INFO)
 
     def start_recording(self):
+
         """
         Start recording using FFmpeg for Windows
         """
         try:
-            output_path = os.path.join(self.output_dir, f"{self.video_name}.mp4")
-            # Windows-compatible FFmpeg command
+            # Generate a timestamp and append to the video name
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            output_filename = f"{self.video_name}_{timestamp}.wav"
+            output_path = os.path.join(self.output_dir, output_filename)
+            
             ffmpeg_args = [
                 r"C:\Users\ayo\ffmpeg-2025-03-03-git-d21ed2298e-full_build\ffmpeg-2025-03-03-git-d21ed2298e-full_build\bin\ffmpeg.exe",
                 "-y", "-loglevel", "error",
-                "-f", "gdigrab", "-framerate", "30", "-i", "desktop",
-                "-f", "dshow", "-i", "audio=Microphone Array (Intel® Smart Sound Technology (Intel® SST))",  # Updated line
-                "-vcodec", "libx264", "-preset", "veryfast", 
+                "-f", "dshow",
+                "-i", "audio=Stereo Mix (Realtek(R) Audio)",
+                "-acodec", "pcm_s16le", 
                 output_path
             ]
             self.recording_process = subprocess.Popen(ffmpeg_args)
@@ -274,8 +278,8 @@ def main():
     automator = GoogleMeetAutomator(recorder)
     
     # Configuration for login and meeting URL
-    google_username = "email@gmail.com"
-    google_password = "password"
+    google_username = "5eun3isiyktv@gmail.com"
+    google_password = "Iaminevitable"
     meet_url = input("Enter your Google Meet URL: ").strip()
 
     automator.automate_and_record(meet_url, google_username, google_password)
