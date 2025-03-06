@@ -3,6 +3,8 @@ import sys
 import time
 import logging
 import subprocess
+import sqlite3
+import whisper
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options
@@ -15,14 +17,15 @@ class GoogleMeetRecorder:
     def __init__(self, 
                  driver_path=r'C:\Users\ayo\Webdriver\msedgedriver.exe',
                  output_dir=r'C:\Users\ayo\MeetScript\output',
-                 video_name='meet_recording',
-                 max_duration=7200,  # 2 hours
+                 video_name='meeting_recording',
+                 max_duration=3600,  # 1 hours
                  fast_mode=False):
         # Recording configuration
         self.output_dir = output_dir
         self.video_name = video_name
         self.max_duration = max_duration
         self.fast_mode = fast_mode
+        self.recorded_file = None  # Will store the final recording file path
         
         # Ensure output directory exists
         os.makedirs(self.output_dir, exist_ok=True)
@@ -42,16 +45,15 @@ class GoogleMeetRecorder:
         self.logger.setLevel(logging.INFO)
 
     def start_recording(self):
-
         """
-        Start recording using FFmpeg for Windows
+        Start recording using FFmpeg for Windows.
         """
         try:
-            # Generate a timestamp and append to the video name
             timestamp = time.strftime("%Y%m%d_%H%M%S")
             output_filename = f"{self.video_name}_{timestamp}.wav"
             output_path = os.path.join(self.output_dir, output_filename)
-            
+            self.recorded_file = output_path  # store the recording path
+
             ffmpeg_args = [
                 r"C:\Users\ayo\ffmpeg-2025-03-03-git-d21ed2298e-full_build\ffmpeg-2025-03-03-git-d21ed2298e-full_build\bin\ffmpeg.exe",
                 "-y", "-loglevel", "error",
@@ -69,18 +71,38 @@ class GoogleMeetRecorder:
 
     def stop_recording(self):
         """
-        Stop FFmpeg recording process
+        Stop FFmpeg recording process using process termination.
         """
         try:
             if self.recording_process:
-                # On Windows, use this signal instead
-                self.recording_process.send_signal(subprocess.CTRL_C_EVENT)
+                self.recording_process.terminate()
                 self.recording_process.wait()
                 self.logger.info("Recording stopped successfully")
             return True
         except Exception as e:
             self.logger.error(f"Error stopping recording: {e}")
             return False
+
+def transcribe_audio(file_path: str) -> str:
+    """
+    Transcribe the provided .wav audio file using OpenAI Whisper.
+    
+    Args:
+        file_path (str): The path to the .wav audio file.
+    
+    Returns:
+        str: The transcribed text from the audio file or an error message.
+    """
+    if not os.path.exists(file_path):
+        return f"File not found: {file_path}"
+    
+    try:
+        model = whisper.load_model("base")
+        result = model.transcribe(file_path)
+        transcript = result.get("text", "")
+        return transcript
+    except Exception as e:
+        return f"Error during transcription: {e}"
 
 class GoogleMeetAutomator:
     MEDIA_CONTINUE_IMAGE = r'C:\Users\ayo\MeetScript\directions\continue_without_media.png'
@@ -180,24 +202,20 @@ class GoogleMeetAutomator:
     def login(self, username, password):
         wait = WebDriverWait(self.driver, 15)
         try:
-            # Enter username
             email_input = wait.until(EC.visibility_of_element_located((By.ID, "identifierId")))
             email_input.clear()
             email_input.send_keys(username)
             self.logger.info("Entered username.")
 
-            # Click Next after username
             email_next = wait.until(EC.element_to_be_clickable((By.ID, "identifierNext")))
             email_next.click()
             self.logger.info("Clicked Next after entering username.")
 
-            # Enter password
             password_input = wait.until(EC.visibility_of_element_located((By.XPATH, "//input[@type='password']")))
             password_input.clear()
             password_input.send_keys(password)
             self.logger.info("Entered password.")
 
-            # Click Next after password
             password_next = wait.until(EC.element_to_be_clickable((By.ID, "passwordNext")))
             password_next.click()
             self.logger.info("Clicked Next after entering password.")
@@ -221,14 +239,13 @@ class GoogleMeetAutomator:
 
     def automate_and_record(self, meet_url, username, password):
         """
-        Integrated method to automate meeting and record
+        Integrated method to automate meeting and record.
+        This method periodically checks if the browser is still open.
         """
         try:
-            # Start recording
             if not self.recorder.start_recording():
                 raise Exception("Recording failed to start")
 
-            # Setup driver and navigate
             if not self.setup_driver():
                 raise Exception("Driver setup failed")
 
@@ -243,15 +260,26 @@ class GoogleMeetAutomator:
 
             self.join_meet()
 
-            # Wait for meeting duration (or until meeting ends)
-            time.sleep(self.recorder.max_duration)
+            # Instead of sleeping for the entire duration, 
+            # check every second if the browser is still open.
+            start_time = time.time()
+            while time.time() - start_time < self.recorder.max_duration:
+                try:
+                    # Check if the browser window is still available.
+                    if not self.driver.window_handles:
+                        self.logger.info("Browser window closed. Ending automation loop.")
+                        break
+                except Exception:
+                    self.logger.info("Browser error detected. Ending automation loop.")
+                    break
+                time.sleep(1)
 
             return True
         except Exception as e:
             self.recorder.logger.error(f"Automation failed: {e}")
             return False
         finally:
-            # Always stop recording and cleanup
+            # Ensure recording stops and cleanup is done even if an error occurs.
             self.recorder.stop_recording()
             self.cleanup()
 
@@ -263,7 +291,34 @@ class GoogleMeetAutomator:
         except Exception as e:
             self.logger.error(f"Error during cleanup: {e}")
 
-# The main function is now defined globally
+def save_transcript_to_db(audio_file: str, transcript: str, db_file="transcripts.db"):
+    """
+    Save the transcript along with the audio file name to a SQLite database.
+    """
+    try:
+        conn = sqlite3.connect(db_file)
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS transcripts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                audio_file TEXT,
+                transcript TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        cursor.execute(
+            "INSERT INTO transcripts (audio_file, transcript, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
+            (audio_file, transcript)
+        )
+        conn.commit()
+        conn.close()
+        print("Transcript saved to SQLite database:", db_file)
+    except Exception as e:
+        print(f"Error saving transcript to database: {e}")
+
 def main():
     # Create recorder with custom configuration
     recorder = GoogleMeetRecorder(
@@ -273,16 +328,34 @@ def main():
         max_duration=3600,  # 1 hour
         fast_mode=False
     )
-    
+
     # Initialize the automator with the recorder
     automator = GoogleMeetAutomator(recorder)
     
     # Configuration for login and meeting URL
-    google_username = "email@gmail.com"
-    google_password = "password"
+    google_username = "5eun3isiyktv@gmail.com"
+    google_password = "Iaminevitable"
     meet_url = input("Enter your Google Meet URL: ").strip()
 
-    automator.automate_and_record(meet_url, google_username, google_password)
+    try:
+        result = automator.automate_and_record(meet_url, google_username, google_password)
+        if result:
+            print("Automation finished successfully.")
+        else:
+            print("Automation encountered an error.")
+    except Exception as e:
+        recorder.logger.error(f"Unexpected error during automation: {e}")
+    finally:
+        # ensure the recording is stopped and the transcript is generated.
+        recorder.stop_recording()
+        if recorder.recorded_file and os.path.exists(recorder.recorded_file):
+            print("Transcribing recorded file:", recorder.recorded_file)
+            transcript = transcribe_audio(recorder.recorded_file)
+            print("Transcript:")
+            print(transcript)
+            save_transcript_to_db(recorder.recorded_file, transcript)
+        else:
+            print("No recording file found to transcribe.")
 
 if __name__ == "__main__":
     main()
