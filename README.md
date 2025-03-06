@@ -49,17 +49,5 @@ Before using MeetScript, ensure you have the following installed:
 
 4. The script will handle the login process, join the meeting, and start recording automatically.
 
-5. After the meeting, the audio will be transcribed and stored in Notion.
+5. After the meeting, the audio will be transcribed and stored in SQLite db.
 
-## Notes
-
-- Ensure that you have the necessary permissions to record meetings and access Notion.
-- Adjust the recording duration in the script as needed.
-
-## Contributing
-
-Contributions are welcome! Please submit a pull request or open an issue for any enhancements or bug fixes.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
