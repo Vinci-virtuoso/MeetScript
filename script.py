@@ -274,8 +274,8 @@ def main():
     automator = GoogleMeetAutomator(recorder)
     
     # Configuration for login and meeting URL
-    google_username = "5eun3isiyktv@gmail.com"
-    google_password = "Iaminevitable"
+    google_username = "email@gmail.com"
+    google_password = "password"
     meet_url = input("Enter your Google Meet URL: ").strip()
 
     automator.automate_and_record(meet_url, google_username, google_password)
