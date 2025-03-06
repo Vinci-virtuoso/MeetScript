@@ -34,7 +34,7 @@ Before using MeetScript, ensure you have the following installed:
 
 ## Usage
 
-1. Update the `main()` function in `GoogleMeetAutoRecorder.py` with your Google credentials:
+1. Update the `main()` function in `script.py` with your Google credentials:
    ```python
    google_username = "your_email@gmail.com"
    google_password = "your_password"
@@ -42,7 +42,7 @@ Before using MeetScript, ensure you have the following installed:
 
 2. Run the script:
    ```bash
-   python GoogleMeetAutoRecorder.py
+   python script.py
    ```
 
 3. When prompted, enter your Google Meet URL.
