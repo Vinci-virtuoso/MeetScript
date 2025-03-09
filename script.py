@@ -5,7 +5,9 @@ import logging
 import subprocess
 import sqlite3
 import whisper
+import json
 from selenium import webdriver
+from deepgram import DeepgramClient, PrerecordedOptions, FileSource
 from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
@@ -84,22 +86,43 @@ class GoogleMeetRecorder:
             return False
 
 def transcribe_audio(file_path: str) -> str:
+    DEEPGRAM_API_KEY = "1836d7828aac4f37796bbf7dbf482808dc028349"
     """
-    Transcribe the provided .wav audio file using OpenAI Whisper.
+    Transcribe the provided .wav audio file using the Deepgram API and extract the transcript.
     
     Args:
         file_path (str): The path to the .wav audio file.
     
     Returns:
-        str: The transcribed text from the audio file or an error message.
+        str: The transcribed text (extracted "transcript") from the audio file or an error message.
     """
     if not os.path.exists(file_path):
         return f"File not found: {file_path}"
     
     try:
-        model = whisper.load_model("base")
-        result = model.transcribe(file_path)
-        transcript = result.get("text", "")
+        # Initialize the Deepgram client
+        deepgram = DeepgramClient(DEEPGRAM_API_KEY)
+        
+        # Open the local file in binary mode and perform transcription via Deepgram
+        with open(file_path, "rb") as audio_file:
+            buffer_data = audio_file.read()
+
+        payload: FileSource = {
+            "buffer": buffer_data,
+        }
+
+        # Configure Deepgram options for audio analysis
+        options = PrerecordedOptions(
+            model="nova-3",
+            smart_format=True,
+        )
+        # Call the transcribe_file method with the audio payload and options
+        response = deepgram.listen.rest.v("1").transcribe_file(payload, options, timeout=6000)
+        
+        # Parse the response and extract the 'transcript' field.
+        response_data = json.loads(response.to_json())
+        transcript = response_data.get("results", {}).get("channels", [{}])[0] \
+            .get("alternatives", [{}])[0].get("transcript", "")
         return transcript
     except Exception as e:
         return f"Error during transcription: {e}"
@@ -333,8 +356,8 @@ def main():
     automator = GoogleMeetAutomator(recorder)
     
     # Configuration for login and meeting URL
-    google_username = "5eun3isiyktv@gmail.com"
-    google_password = "Iaminevitable"
+    google_username = "email@gmail.com"
+    google_password = "password"
     meet_url = input("Enter your Google Meet URL: ").strip()
 
     try:
