@@ -1,7 +1,9 @@
-import os 
+import os
 import sqlite3
 import requests
-from datetime import datetime, timedelta, timezone, timedelta
+import time
+from datetime import datetime, timedelta, timezone
+from typing import List
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -9,12 +11,11 @@ from mcp.server.fastmcp import FastMCP
 
 # Initialize FastMCP server
 mcp = FastMCP("transcript2notion")
-
 load_dotenv()
 client = OpenAI()
+
 # SQLite database connection settings
 DB_PATH = "C:/Users/ayo/MeetScript/transcripts.db"
-
 
 NOTION_API_KEY = os.getenv("NOTION_API_KEY")
 NOTION_DATABASE_ID = os.getenv("DATABASE_ID")
@@ -36,6 +37,7 @@ def get_schema(table_name: str) -> str:
     schema = cursor.fetchall()
     conn.close()
     return str(schema)
+
 @mcp.tool()
 def get_transcripts_from_db() -> str:
     """
@@ -60,51 +62,82 @@ class ActionableItem(BaseModel):
     description: str
     assignees: list[str]
     dates: list[str]
-def structure_transcript(transcript: str) -> ActionableItem:
-    """
-    Structure the transcript into actionable items using OpenAI's structured output format.
-    
-    This function uses OpenAI's chat completions API to extract actionable items from the transcript.
-    It extracts a task description, the names of the persons the task is assigned to, and any dates mentioned.
 
-    Args:
-        transcript (str): The raw transcript text.
-        
-    Returns:
-        ActionableItem: Parsed actionable item containing the description, assignees, and dates.
+class ActionableItems(BaseModel):
     """
-    messages = [
-        {
-            "role": "system", 
-            "content": "Extract actionable items from the transcript. Provide a description of the task, a list of assignees, and any dates mentioned."
-        },
-        {"role": "user", "content": transcript}
-    ]
+    A model representing a collection of actionable items extracted from a transcript.
     
-    completion = client.beta.chat.completions.parse(
-        model="gpt-4o-mini",
-        messages=messages,
-        response_format=ActionableItem,
-    )
-    
-    if completion.choices:
-        return completion.choices[0].message.parsed
-    else:
-        raise ValueError("No actionable item extracted from the transcript.")
+    Attributes:
+        items (list[ActionableItem]): A list of actionable items.
+    """
+    items: List[ActionableItem]
+
 @mcp.tool()
 def write_to_notion(transcript: str) -> str:
     """
-    Write the provided transcript to Notion as a new page with:
-    - Task Name set to "Transcript Page"
-    - Transcript property containing the full transcript as rich text.
-    - Status property set to "Not started"
-    - Assignee and Due Date can be left blank or set as needed.
+    Write the provided transcript to Notion as a new page after structuring it using OpenAI's structured output format.
+    
+    The function uses OpenAI's chat completions API to extract actionable items (description, assignees, dates)
+    from the transcript and writes them into Notion in a structured format.
     
     Args:
-        transcript: The transcript text to be written to Notion.
+        transcript (str): The raw transcript text to be processed and written to Notion.
     """
+    # Parse the transcript into structured actionable items using OpenAI's structured output format.
+    try:
+        messages = [
+            {
+                "role": "system", 
+                "content": """ You are a helpful assistant, you are skilled at
+                    extracting useful and actionable items from a transcript.
+                    The organization consists of the following people:
+                    - Kuba
+                    - Wale(Aderogba)
+                    - Vinci
+                    - Mr Kingsley
+                    - Ola
+                    - Grace
+                    - Chike
+                    - Micheal
+
+                    Your primary task is to extract ALL actionable items from the transcript. 
+                    Each actionable item should have:
+                    - A description of the task
+                    - The task assignees (if mentioned)
+                    - Dates or deadlines mentioned (if any)
+                    
+                    If a task has no specific assignee, leave the assignees list empty.
+                    If a task has no specific date, leave the dates list empty.
+                    Extract ALL tasks mentioned, not just the first one.
+                    """
+            },
+            {"role": "user", "content": transcript}
+        ]
+        completion = client.beta.chat.completions.parse(
+            model="gpt-4o-mini",
+            messages=messages,
+            response_format=ActionableItems,
+        )
+        if not completion.choices:
+            raise ValueError("No actionable item extracted from the transcript.")
+        actionable_items = completion.choices[0].message.parsed
+        if not actionable_items.items:
+            raise ValueError("No actionable items found in the parsed result.")
+    except Exception as e:
+        return f"Failed to structure transcript: {e}"
+    
+    structured_transcript_parts = []
+    for idx, item in enumerate(actionable_items.items, 1):
+        part = (
+            f"Actionable Item {idx}:\n"
+            f"Task: {item.description}\n"
+            f"Assignees: {', '.join(item.assignees) if item.assignees else 'None'}\n"
+            f"Dates: {', '.join(item.dates) if item.dates else 'None'}"
+        )
+        structured_transcript_parts.append(part)
+    structured_transcript = "\n\n".join(structured_transcript_parts)
+    
     today = datetime.now()
-    due_date = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat().replace('+00:00', 'Z')
     week_number = ((today.day - 1) // 7) + 1
     month_name = today.strftime("%B")
     task_name = f"Week {week_number} {month_name}"
@@ -133,16 +166,16 @@ def write_to_notion(transcript: str) -> str:
                 }
             },
             "Assignee": {
-                "people": []  # Leave empty or add specific user IDs if needed
+                "people": []
             },
             "Due": {
-                "date": None  
+                "date": None
             },
             "Transcript": {
                 "rich_text": [
                     {
                         "text": {
-                            "content": transcript
+                            "content": structured_transcript
                         }
                     }
                 ]
@@ -155,10 +188,8 @@ def write_to_notion(transcript: str) -> str:
     else:
         return f"Failed to write transcript. Status: {response.status_code}, Response: {response.text}"
 
-
-
 def main():
-    raw_transcript = get_transcripts()
+    raw_transcript = get_transcripts_from_db()
     if not raw_transcript:
         print("No transcript found in the database.")
         return
@@ -179,5 +210,5 @@ def main():
     print(result)
 
 if __name__ == "__main__":
-        # Initialize and run the server
+    # Initialize and run the server
     mcp.run(transport='stdio')
