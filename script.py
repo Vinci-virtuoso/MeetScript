@@ -86,7 +86,7 @@ class GoogleMeetRecorder:
             return False
 
 def transcribe_audio(file_path: str) -> str:
-    DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
+    DEEPGRAM_API_KEY = "1836d7828aac4f37796bbf7dbf482808dc028349"
     """
     Transcribe the provided .wav audio file using the Deepgram API and extract the transcript.
     
@@ -115,6 +115,7 @@ def transcribe_audio(file_path: str) -> str:
         options = PrerecordedOptions(
             model="nova-3",
             smart_format=True,
+            keyterm=["Grace","Kuba","Vinci","Wale","Micheal","MCP","LiveKit "],
         )
         # Call the transcribe_file method with the audio payload and options
         response = deepgram.listen.rest.v("1").transcribe_file(payload, options, timeout=6000)
