@@ -50,4 +50,5 @@ Before using MeetScript, ensure you have the following installed:
 4. The script will handle the login process, join the meeting, and start recording automatically.
 
 5. After the meeting, the audio will be transcribed and stored in SQLite db.
+6. Using MCP tools through claude desktop allows team members to upload meeting transcript/ query meeting notes and tasks.
 
