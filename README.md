@@ -16,6 +16,7 @@ Before using MeetScript, ensure you have the following installed:
 - Python 3.x
 - Required Python packages (see Installation section)
 - Microsoft Edge WebDriver (for Selenium)
+- Deepgram
 
 ## Installation
 
