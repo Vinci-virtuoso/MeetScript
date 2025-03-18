@@ -86,7 +86,7 @@ class GoogleMeetRecorder:
             return False
 
 def transcribe_audio(file_path: str) -> str:
-    DEEPGRAM_API_KEY = "1836d7828aac4f37796bbf7dbf482808dc028349"
+    DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
     """
     Transcribe the provided .wav audio file using the Deepgram API and extract the transcript.
     
@@ -220,8 +220,20 @@ class GoogleMeetAutomator:
             return False
 
     def click_sign_in(self):
-        SIGN_IN_XPATH = "//*[@id='yDmH0d']/c-wiz/div/div/div[38]/div[4]/div/div[2]/div[1]/div[2]/div[1]/div"
-        return self.click_element(By.XPATH, SIGN_IN_XPATH, initial_delay=5)
+        SIGN_IN_SELECTORS = [
+            "//span[contains(text(), 'Sign in')]",
+            "//div[contains(@aria-label, 'Sign in')]",
+            "//div[contains(@class, 'sign-in')]//button"
+        ]
+        
+        for selector in SIGN_IN_SELECTORS:
+            try:
+                return self.click_element(By.XPATH, selector, initial_delay=2)
+            except Exception as e:
+                self.logger.warning(f"Failed with selector {selector}: {e}")
+        self.driver.save_screenshot("sign_in_failure.png")
+        self.logger.error("All sign-in button selectors failed")
+        return False
 
     def login(self, username, password):
         wait = WebDriverWait(self.driver, 15)
