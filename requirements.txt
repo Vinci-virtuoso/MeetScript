@@ -1,8 +1,12 @@
+selenium
+deepgram-sdk
 Pillow
 pyautogui
-selenium
 uv
+uvicorn
 openai
 requests
 pydantic
-
+opencv-python
+mcp
+starlette
