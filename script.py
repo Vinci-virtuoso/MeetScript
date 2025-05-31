@@ -4,7 +4,6 @@ import time
 import logging
 import subprocess
 import sqlite3
-import whisper
 import json
 from selenium import webdriver
 from deepgram import DeepgramClient, PrerecordedOptions, FileSource
@@ -17,7 +16,7 @@ import pyautogui
 
 class GoogleMeetRecorder:
     def __init__(self, 
-                 driver_path=r'C:\Users\ayo\Webdriver\msedgedriver.exe',
+                 driver_path=r'/usr/local/bin/msedgedriver',
                  output_dir=r'C:\Users\ayo\MeetScript\output',
                  video_name='meeting_recording',
                  max_duration=3600,  # 1 hours
@@ -131,7 +130,7 @@ def transcribe_audio(file_path: str) -> str:
 class GoogleMeetAutomator:
     MEDIA_CONTINUE_IMAGE = r'C:\Users\ayo\MeetScript\directions\continue_without_media.png'
 
-    def __init__(self, recorder, driver_path=r'C:\Users\ayo\Webdriver\msedgedriver.exe'):
+    def __init__(self, recorder, driver_path=r'/usr/local/bin/msedgedriver'):
         self.recorder = recorder
         self.driver_path = driver_path
         self.driver = None
@@ -143,7 +142,7 @@ class GoogleMeetAutomator:
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
-        self.logger.setLevel(logging.INFO)
+        
 
     def setup_driver(self):
         try:
@@ -153,6 +152,7 @@ class GoogleMeetAutomator:
             options.add_argument('--force-dark-mode')
             options.add_argument("--disable-extensions")
             options.add_argument("--window-size=1920,1080")
+            options.add_argument("--user-data-dir=/tmp/selenium_profile")
             options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_experimental_option("excludeSwitches", ["enable-automation"])
             options.add_experimental_option("useAutomationExtension", False)
@@ -169,21 +169,36 @@ class GoogleMeetAutomator:
         except Exception as e:
             self.logger.error(f"Failed to initialize WebDriver: {e}")
             return False
-
-    def handle_media_permissions(self):
+    def is_user_signed_in(self):
+        """
+        Quickly determines if an account is already signed in by checking for the presence of 
+        the 'Sign in' button without waiting. If the 'Sign in' button is found, the user is not signed in.
+        """
         try:
-            time.sleep(2)
-            location = pyautogui.locateOnScreen(self.MEDIA_CONTINUE_IMAGE, confidence=0.8)
-            if location:
-                x, y = pyautogui.center(location)
-                pyautogui.moveTo(x, y, duration=0.5)
-                pyautogui.click()
-                self.logger.info("Dismissed media permissions prompt using pyautogui.")
+            sign_in_elements = self.driver.find_elements(By.XPATH, "//span[contains(text(), 'Sign in')]")
+            if sign_in_elements and sign_in_elements[0].is_displayed():
+                self.logger.info("Sign in button found; user is not signed in.")
+                return False
+            else:
+                self.logger.info("Sign in button not found; assuming user is already signed in.")
                 return True
-            self.logger.warning("Media permissions prompt not found.")
-            return False
         except Exception as e:
-            self.logger.error(f"Error handling media permissions: {e}")
+            self.logger.info(f"Error detecting sign in button: {e}. Assuming user is already signed in.")
+            return True
+    def handle_media_permissions(self):
+        """
+        Dismiss the media permissions prompt using Selenium explicit wait.
+        This looks for buttons that suggest 'Continue without', "Don't allow", or 'Cancel'.
+        """
+        try:
+            wait = WebDriverWait(self.driver, 10)
+            dismiss_xpath = "//*[contains(text(), 'Continue without') or contains(text(), \"Don't allow\") or contains(text(), 'Cancel')]"
+            dismiss_button = wait.until(EC.element_to_be_clickable((By.XPATH, dismiss_xpath)))
+            dismiss_button.click()
+            self.logger.info("Dismissed media permissions prompt using Selenium explicit wait.")
+            return True
+        except Exception as e:
+            self.logger.info("No media permissions prompt detected via Selenium explicit wait.")
             return False
 
     def go_to_meet(self, meet_url):
@@ -262,21 +277,28 @@ class GoogleMeetAutomator:
 
     def join_meet(self):
         try:
-            time.sleep(5)
-            pyautogui.press('esc')
-            self.logger.info("Dismissed overlays using ESC key.")
-            ASK_TO_JOIN_XPATH = "//span[contains(text(), 'Ask to join')]"
+            # Dismiss any possible media permission prompt.
+            self.handle_media_permissions()
             wait = WebDriverWait(self.driver, 15)
-            ask_to_join_button = wait.until(EC.element_to_be_clickable((By.XPATH, ASK_TO_JOIN_XPATH)))
-            ask_to_join_button.click()
-            self.logger.info("Clicked 'Ask to join' button.")
+            try:
+                # Preferred: Click the 'Ask to join' button.
+                ask_to_join_xpath = "//span[contains(text(), 'Ask to join')]"
+                ask_to_join_button = wait.until(EC.element_to_be_clickable((By.XPATH, ask_to_join_xpath)))
+                ask_to_join_button.click()
+                self.logger.info("Clicked 'Ask to join' button.")
+            except Exception:
+                # Fallback: With a persisted session, the button may be 'Join now' (i.e., allow to join).
+                join_now_xpath = "//span[contains(text(), 'Join now')]"
+                join_now_button = wait.until(EC.element_to_be_clickable((By.XPATH, join_now_xpath)))
+                join_now_button.click()
+                self.logger.info("Clicked 'Join now' button.")
         except Exception as e:
             self.logger.error(f"Failed to join meet: {e}")
 
     def automate_and_record(self, meet_url, username, password):
         """
         Integrated method to automate meeting and record.
-        This method periodically checks if the browser is still open.
+        Now includes detection of a persisted session to skip the login process when already signed in.
         """
         try:
             if not self.recorder.start_recording():
@@ -288,11 +310,13 @@ class GoogleMeetAutomator:
             if not self.go_to_meet(meet_url):
                 raise Exception("Failed to go to Meet URL")
 
-            if not self.click_sign_in():
-                raise Exception("Failed to click Sign In")
-
-            if not self.login(username, password):
-                raise Exception("Login failed")
+            if not self.is_user_signed_in():
+                if not self.click_sign_in():
+                    raise Exception("Failed to click Sign In")
+                if not self.login(username, password):
+                    raise Exception("Login failed")
+            else:
+                self.logger.info("User is already signed in; skipping login.")
 
             self.join_meet()
 
@@ -301,7 +325,6 @@ class GoogleMeetAutomator:
             start_time = time.time()
             while time.time() - start_time < self.recorder.max_duration:
                 try:
-                    # Check if the browser window is still available.
                     if not self.driver.window_handles:
                         self.logger.info("Browser window closed. Ending automation loop.")
                         break
@@ -315,7 +338,6 @@ class GoogleMeetAutomator:
             self.recorder.logger.error(f"Automation failed: {e}")
             return False
         finally:
-            # Ensure recording stops and cleanup is done even if an error occurs.
             self.recorder.stop_recording()
             self.cleanup()
 
@@ -358,7 +380,7 @@ def save_transcript_to_db(audio_file: str, transcript: str, db_file="transcripts
 def main():
     # Create recorder with custom configuration
     recorder = GoogleMeetRecorder(
-        driver_path=r'C:\Users\ayo\Webdriver\msedgedriver.exe',
+        driver_path=r'/usr/local/bin/msedgedriver',
         video_name='meeting_recording',
         output_dir=r'C:\Users\ayo\MeetScript\output',
         max_duration=3600,  # 1 hour
@@ -369,9 +391,9 @@ def main():
     automator = GoogleMeetAutomator(recorder)
     
     # Configuration for login and meeting URL
-    google_username = "email@gmail.com"
-    google_password = "password"
-    meet_url = input("Enter your Google Meet URL: ").strip()
+    google_username = os.getenv("GOOGLE_USERNAME") or input("Enter your Gmail address: ").strip()
+    google_password = os.getenv("GOOGLE_PASSWORD") or input("Enter your Google password: ").strip()
+    meet_url = os.getenv("MEET_URL") or input("Enter your Google Meet URL: ").strip()
 
     try:
         result = automator.automate_and_record(meet_url, google_username, google_password)
