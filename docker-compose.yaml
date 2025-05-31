@@ -1,0 +1,15 @@
+version: '3'
+services:
+  meetscript:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - selenium_profile:/tmp/selenium_profile
+    environment:
+      - MEET_URL=${MEET_URL}
+      - GOOGLE_USERNAME=${GOOGLE_USERNAME}
+      - GOOGLE_PASSWORD=${GOOGLE_PASSWORD}
+      - EDGE_DRIVER_PATH=/usr/local/bin/msedgedriver
+volumes:
+  selenium_profile:
