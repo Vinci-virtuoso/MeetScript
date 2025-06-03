@@ -13,7 +13,14 @@ RUN apt-get update && apt-get install -y \
     unzip \
     curl \
     gnupg \
+    pulseaudio \
+    pulseaudio-utils \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
+
+# Install websocat by downloading its precompiled binary
+RUN wget -O /usr/local/bin/websocat https://github.com/vi/websocat/releases/download/v1.7.0/websocat_amd64-linux \
+    && chmod +x /usr/local/bin/websocat
 
 WORKDIR /app
 
@@ -29,7 +36,7 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > mic
     && apt-get update \
     && apt-get install -y microsoft-edge-stable
 
-# Download and install the Linux msedgedriver (make sure the URL corresponds to your version)
+# Download and install the Linux msedgedriver (ensure the URL matches your version)
 RUN wget -O msedgedriver.zip https://msedgedriver.azureedge.net/136.0.3240.92/edgedriver_linux64.zip \
     && unzip msedgedriver.zip -d /usr/local/bin/ \
     && chmod +x /usr/local/bin/msedgedriver \
@@ -41,9 +48,9 @@ COPY . /app
 # Create an empty .Xauthority file for Xvfb/pyautogui usage
 RUN touch ${HOME}/.Xauthority
 
-# Copy and set entrypoint script permissions
+# Copy the entrypoint script, convert Windows CRLF to Unix LF, and set executable permissions
 COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 ENV DISPLAY=:99
 ENV EDGE_DRIVER_PATH=/usr/local/bin/msedgedriver

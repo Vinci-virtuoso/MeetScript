@@ -5,133 +5,20 @@ import logging
 import subprocess
 import sqlite3
 import json
+import asyncio
 from selenium import webdriver
-from deepgram import DeepgramClient, PrerecordedOptions, FileSource
 from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pyautogui  
-
-class GoogleMeetRecorder:
-    def __init__(self, 
-                 driver_path=r'/usr/local/bin/msedgedriver',
-                 output_dir=r'C:\Users\ayo\MeetScript\output',
-                 video_name='meeting_recording',
-                 max_duration=3600,  # 1 hours
-                 fast_mode=False):
-        # Recording configuration
-        self.output_dir = output_dir
-        self.video_name = video_name
-        self.max_duration = max_duration
-        self.fast_mode = fast_mode
-        self.recorded_file = None  # Will store the final recording file path
-        
-        # Ensure output directory exists
-        os.makedirs(self.output_dir, exist_ok=True)
-        
-        # Logging setup
-        self.setup_logging()
-        
-        # Recording process
-        self.recording_process = None
-
-    def setup_logging(self):
-        self.logger = logging.getLogger(self.__class__.__name__)
-        handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
-        self.logger.setLevel(logging.INFO)
-
-    def start_recording(self):
-        """
-        Start recording using FFmpeg for Windows.
-        """
-        try:
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
-            output_filename = f"{self.video_name}_{timestamp}.wav"
-            output_path = os.path.join(self.output_dir, output_filename)
-            self.recorded_file = output_path  # store the recording path
-
-            ffmpeg_args = [
-                r"C:\Users\ayo\ffmpeg-2025-03-03-git-d21ed2298e-full_build\ffmpeg-2025-03-03-git-d21ed2298e-full_build\bin\ffmpeg.exe",
-                "-y", "-loglevel", "error",
-                "-f", "dshow",
-                "-i", "audio=Stereo Mix (Realtek(R) Audio)",
-                "-acodec", "pcm_s16le", 
-                output_path
-            ]
-            self.recording_process = subprocess.Popen(ffmpeg_args)
-            self.logger.info(f"Recording started: {output_path}")
-            return True
-        except Exception as e:
-            self.logger.error(f"Failed to start recording: {e}")
-            return False
-
-    def stop_recording(self):
-        """
-        Stop FFmpeg recording process using process termination.
-        """
-        try:
-            if self.recording_process:
-                self.recording_process.terminate()
-                self.recording_process.wait()
-                self.logger.info("Recording stopped successfully")
-            return True
-        except Exception as e:
-            self.logger.error(f"Error stopping recording: {e}")
-            return False
-
-def transcribe_audio(file_path: str) -> str:
-    DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
-    """
-    Transcribe the provided .wav audio file using the Deepgram API and extract the transcript.
-    
-    Args:
-        file_path (str): The path to the .wav audio file.
-    
-    Returns:
-        str: The transcribed text (extracted "transcript") from the audio file or an error message.
-    """
-    if not os.path.exists(file_path):
-        return f"File not found: {file_path}"
-    
-    try:
-        # Initialize the Deepgram client
-        deepgram = DeepgramClient(DEEPGRAM_API_KEY)
-        
-        # Open the local file in binary mode and perform transcription via Deepgram
-        with open(file_path, "rb") as audio_file:
-            buffer_data = audio_file.read()
-
-        payload: FileSource = {
-            "buffer": buffer_data,
-        }
-
-        # Configure Deepgram options for audio analysis
-        options = PrerecordedOptions(
-            model="nova-3",
-            smart_format=True,
-            keyterm=["Grace","Kuba","Vinci","Wale","Micheal","MCP","LiveKit "],
-        )
-        # Call the transcribe_file method with the audio payload and options
-        response = deepgram.listen.rest.v("1").transcribe_file(payload, options, timeout=6000)
-        
-        # Parse the response and extract the 'transcript' field.
-        response_data = json.loads(response.to_json())
-        transcript = response_data.get("results", {}).get("channels", [{}])[0] \
-            .get("alternatives", [{}])[0].get("transcript", "")
-        return transcript
-    except Exception as e:
-        return f"Error during transcription: {e}"
+from realtime_stream import RealTimeTranscriber
 
 class GoogleMeetAutomator:
     MEDIA_CONTINUE_IMAGE = r'C:\Users\ayo\MeetScript\directions\continue_without_media.png'
 
-    def __init__(self, recorder, driver_path=r'/usr/local/bin/msedgedriver'):
-        self.recorder = recorder
+    def __init__(self, driver_path=r'C:/Users/ayo/edgedriver_win64/msedgedriver.exe'):
         self.driver_path = driver_path
         self.driver = None
         self.setup_logging()
@@ -295,51 +182,49 @@ class GoogleMeetAutomator:
         except Exception as e:
             self.logger.error(f"Failed to join meet: {e}")
 
-    def automate_and_record(self, meet_url, username, password):
+    async def automate_and_transcribe(self, meet_url, username, password, deepgram_api_key, meeting_duration=3600):
+
+
         """
         Integrated method to automate meeting and record.
         Now includes detection of a persisted session to skip the login process when already signed in.
         """
-        try:
-            if not self.recorder.start_recording():
-                raise Exception("Recording failed to start")
+        if not self.setup_driver():
+            raise Exception("Driver setup failed")
 
-            if not self.setup_driver():
-                raise Exception("Driver setup failed")
+        if not self.go_to_meet(meet_url):
+            raise Exception("Failed to go to Meet URL")
 
-            if not self.go_to_meet(meet_url):
-                raise Exception("Failed to go to Meet URL")
+        if not self.is_user_signed_in():
+            if not self.click_sign_in():
+                raise Exception("Failed to click Sign In")
+            if not self.login(username, password):
+                raise Exception("Login failed")
+        else:
+            self.logger.info("User is already signed in; skipping login.")
 
-            if not self.is_user_signed_in():
-                if not self.click_sign_in():
-                    raise Exception("Failed to click Sign In")
-                if not self.login(username, password):
-                    raise Exception("Login failed")
-            else:
-                self.logger.info("User is already signed in; skipping login.")
+        self.join_meet()
+        self.logger.info("Meeting joined successfully.")
 
-            self.join_meet()
 
-            # Instead of sleeping for the entire duration, 
-            # check every second if the browser is still open.
-            start_time = time.time()
-            while time.time() - start_time < self.recorder.max_duration:
-                try:
-                    if not self.driver.window_handles:
-                        self.logger.info("Browser window closed. Ending automation loop.")
-                        break
-                except Exception:
-                    self.logger.info("Browser error detected. Ending automation loop.")
+        # Now, start the real-time transcription
+        transcriber = RealTimeTranscriber(deepgram_api_key, output_format="text",timestamps=True)
+        transcriber.start()
+
+        start_time = time.time()
+        while time.time() - start_time < meeting_duration:
+            try:
+                if not self.driver.window_handles:
+                    self.logger.info("Browser window closed. Ending automation loop.")
                     break
-                time.sleep(1)
+            except Exception as e:
+                self.logger.error(f"Browser error: {e}. Ending automation loop.")
+                break
+            await asyncio.sleep(1)
 
-            return True
-        except Exception as e:
-            self.recorder.logger.error(f"Automation failed: {e}")
-            return False
-        finally:
-            self.recorder.stop_recording()
-            self.cleanup()
+        # Stop transcription when done.
+        await transcriber.stop()
+        self.cleanup()
 
     def cleanup(self):
         try:
@@ -349,71 +234,19 @@ class GoogleMeetAutomator:
         except Exception as e:
             self.logger.error(f"Error during cleanup: {e}")
 
-def save_transcript_to_db(audio_file: str, transcript: str, db_file="transcripts.db"):
-    """
-    Save the transcript along with the audio file name to a SQLite database.
-    """
-    try:
-        conn = sqlite3.connect(db_file)
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS transcripts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                audio_file TEXT,
-                transcript TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-            """
-        )
-        cursor.execute(
-            "INSERT INTO transcripts (audio_file, transcript, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
-            (audio_file, transcript)
-        )
-        conn.commit()
-        conn.close()
-        print("Transcript saved to SQLite database:", db_file)
-    except Exception as e:
-        print(f"Error saving transcript to database: {e}")
-
-def main():
-    # Create recorder with custom configuration
-    recorder = GoogleMeetRecorder(
-        driver_path=r'/usr/local/bin/msedgedriver',
-        video_name='meeting_recording',
-        output_dir=r'C:\Users\ayo\MeetScript\output',
-        max_duration=3600,  # 1 hour
-        fast_mode=False
-    )
-
-    # Initialize the automator with the recorder
-    automator = GoogleMeetAutomator(recorder)
-    
-    # Configuration for login and meeting URL
+# In your main function, after gathering login info, meeting URL, and Deepgram API key
+async def main():
     google_username = os.getenv("GOOGLE_USERNAME") or input("Enter your Gmail address: ").strip()
     google_password = os.getenv("GOOGLE_PASSWORD") or input("Enter your Google password: ").strip()
     meet_url = os.getenv("MEET_URL") or input("Enter your Google Meet URL: ").strip()
+    deepgram_api_key = os.getenv("DEEPGRAM_API_KEY") or input("Enter your Deepgram API Key: ").strip()
+    meeting_duration = 3600  # duration in seconds
 
+    automator = GoogleMeetAutomator()
     try:
-        result = automator.automate_and_record(meet_url, google_username, google_password)
-        if result:
-            print("Automation finished successfully.")
-        else:
-            print("Automation encountered an error.")
+        await automator.automate_and_transcribe(meet_url, google_username, google_password, deepgram_api_key, meeting_duration)
     except Exception as e:
-        recorder.logger.error(f"Unexpected error during automation: {e}")
-    finally:
-        # ensure the recording is stopped and the transcript is generated.
-        recorder.stop_recording()
-        if recorder.recorded_file and os.path.exists(recorder.recorded_file):
-            print("Transcribing recorded file:", recorder.recorded_file)
-            transcript = transcribe_audio(recorder.recorded_file)
-            print("Transcript:")
-            print(transcript)
-            save_transcript_to_db(recorder.recorded_file, transcript)
-        else:
-            print("No recording file found to transcribe.")
+        automator.logger.error(f"Automation error: {e}")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

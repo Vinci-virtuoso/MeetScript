@@ -67,7 +67,29 @@ async def join_google_meet_tool(meeting_url: str, google_username: str, google_p
     except Exception as e:
         logger.error(f"Error in join_google_meet_tool: {e}")
         return {"success": False, "error": str(e)}
-
+@mcp_logic_controller.tool()
+async def transcribe_google_meet_tool(
+    meeting_url: str,
+    google_username: str,
+    google_password: str,
+    deepgram_api_key: str,
+    meeting_duration: int = 3600
+) -> dict:
+    logger.info("MCP SERVER (SeleniumGoogleMeetControl): transcribe_google_meet_tool invoked")
+    try:
+        automator = GoogleMeetAutomator()
+        # The automator will launch the browser, join the meeting and start transcription.
+        await automator.automate_and_transcribe(
+            meeting_url,
+            google_username,
+            google_password,
+            deepgram_api_key,
+            meeting_duration
+        )
+        return {"success": True, "message": "Transcription completed successfully."}
+    except Exception as e:
+        logger.error(f"Error while transcribing: {e}", exc_info=True)
+        return {"success": False, "error": str(e)}
 # Define startup and shutdown functions for Starlette.
 async def lifespan_startup():
     logger.info("Selenium automation startup.")

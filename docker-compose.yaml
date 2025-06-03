@@ -10,6 +10,7 @@ services:
       - MEET_URL=${MEET_URL}
       - GOOGLE_USERNAME=${GOOGLE_USERNAME}
       - GOOGLE_PASSWORD=${GOOGLE_PASSWORD}
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
       - EDGE_DRIVER_PATH=/usr/local/bin/msedgedriver
 volumes:
   selenium_profile:
