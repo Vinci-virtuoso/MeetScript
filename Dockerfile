@@ -1,14 +1,16 @@
 FROM python:3.10-slim
 
 # Install OS-level dependencies including Xvfb, tkinter, unzip, etc.
-RUN apt-get update && apt-get install -y \
+RUN apt-get update -o Acquire::Check-Valid-Until=false && apt-get install -y \
     xvfb \
+    portaudio19-dev \
     libglib2.0-0 \
     libnss3 \
     libgconf-2-4 \
     libfontconfig1 \
     python3-tk \
     python3-dev \
+    build-essential \
     wget \
     unzip \
     curl \
@@ -51,6 +53,8 @@ RUN touch ${HOME}/.Xauthority
 # Copy the entrypoint script, convert Windows CRLF to Unix LF, and set executable permissions
 COPY entrypoint.sh /app/entrypoint.sh
 RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
+VOLUME ["/app/selenium_profile"]
 
 ENV DISPLAY=:99
 ENV EDGE_DRIVER_PATH=/usr/local/bin/msedgedriver

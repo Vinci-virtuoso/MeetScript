@@ -2,10 +2,8 @@ import os
 import sys
 import time
 import logging
-import subprocess
-import sqlite3
-import json
 import asyncio
+import tempfile
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options
@@ -18,10 +16,15 @@ from realtime_stream import RealTimeTranscriber
 class GoogleMeetAutomator:
     MEDIA_CONTINUE_IMAGE = r'C:\Users\ayo\MeetScript\directions\continue_without_media.png'
 
-    def __init__(self, driver_path=r'C:/Users/ayo/edgedriver_win64/msedgedriver.exe'):
+    def __init__(self, driver_path=r'/usr/local/bin/msedgedriver'):
         self.driver_path = driver_path
         self.driver = None
         self.setup_logging()
+        # Define a persistent profile folder
+        self.profile_path = "/app/selenium_profile"
+        if not os.path.exists(self.profile_path):
+            os.makedirs(self.profile_path)
+            self.logger.info(f"Created persistent profile directory at {self.profile_path}")
 
     def setup_logging(self):
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -33,13 +36,19 @@ class GoogleMeetAutomator:
 
     def setup_driver(self):
         try:
+            # Define the lock file (could be "SingletonLock" or similar)
+            lock_file = os.path.join(self.profile_path, "SingletonLock")
+            if os.path.exists(lock_file):
+                self.logger.info(f"Lock file found in profile directory: {lock_file}. Removing it.")
+                os.remove(lock_file)
+
             options = Options()
             options.add_argument('--no-sandbox')
             options.add_argument('--disable-dev-shm-usage')
             options.add_argument('--force-dark-mode')
             options.add_argument("--disable-extensions")
             options.add_argument("--window-size=1920,1080")
-            options.add_argument("--user-data-dir=/tmp/selenium_profile")
+            #options.add_argument(f"--user-data-dir={self.profile_path}")
             options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_experimental_option("excludeSwitches", ["enable-automation"])
             options.add_experimental_option("useAutomationExtension", False)
@@ -183,10 +192,8 @@ class GoogleMeetAutomator:
             self.logger.error(f"Failed to join meet: {e}")
 
     async def automate_and_transcribe(self, meet_url, username, password, deepgram_api_key, meeting_duration=3600):
-
-
         """
-        Integrated method to automate meeting and record.
+        Integrated method to automate meeting and transcribe.
         Now includes detection of a persisted session to skip the login process when already signed in.
         """
         if not self.setup_driver():

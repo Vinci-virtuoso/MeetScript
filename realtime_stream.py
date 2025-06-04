@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-import sys, asyncio, warnings
+import sys
+import asyncio
+import warnings
 
 # Optionally, suppress deprecation warnings from websockets if desired.
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="websockets")
@@ -46,6 +48,39 @@ CHUNK = 8000
 audio_queue = asyncio.Queue()
 REALTIME_RESOLUTION = 0.250
 subtitle_line_counter = 0
+
+def log_audio_devices():
+    pa = pyaudio.PyAudio()
+    device_count = pa.get_device_count()
+    print(f"Found {device_count} audio devices:")
+    for i in range(device_count):
+        try:
+            info = pa.get_device_info_by_index(i)
+            print(f"Device {i}: {info.get('name')}, Input Channels: {info.get('maxInputChannels')}")
+        except Exception as e:
+            print(f"Error getting info for device {i}: {e}")
+    if device_count == 0:
+        print("WARNING: No audio devices available!")
+    pa.terminate()
+
+# Log available audio devices.
+log_audio_devices()
+
+# Initialize PyAudio and open the input stream.
+audio = pyaudio.PyAudio()
+try:
+    stream = audio.open(
+        format=FORMAT,
+        channels=CHANNELS,
+        rate=RATE,
+        input=True,
+        frames_per_buffer=CHUNK,
+        stream_callback=lambda in_data, frame_count, time_info, status: (in_data, pyaudio.paContinue)
+    )
+    stream.start_stream()
+    print("Audio stream initialized successfully.")
+except Exception as e:
+    print(f"ERROR initializing audio stream: {e}")
 
 def subtitle_time_formatter(seconds, separator):
     hours = int(seconds // 3600)
@@ -220,7 +255,6 @@ async def run(key, method, output_format, **kwargs):
          print(f'🔴 ERROR: {e}')
          return
 
-# New OOP wrapper class for real-time transcription in mic mode.
 class RealTimeTranscriber:
     def __init__(self, api_key, host="wss://api.deepgram.com", output_format="text", model=None, tier=None, timestamps=False):
         self.api_key = api_key
@@ -256,21 +290,18 @@ class RealTimeTranscriber:
             print("Real-time transcription stopped.")
             self.running = False
 
-# If run as a script, you can add a main function for testing.
 if __name__ == "__main__":
-    import argparse
     parser = argparse.ArgumentParser(description="Real-time transcription using Deepgram (mic mode).")
     parser.add_argument("-k", "--key", required=True, help="Your Deepgram API Key")
     parser.add_argument("--host", default="wss://api.deepgram.com", help="Deepgram WebSocket host")
     parser.add_argument("-f", "--format", default="text", choices=["text", "vtt", "srt"], help="Output format")
     args = parser.parse_args()
     
-    # For testing, run the transcription in mic mode.
     async def main():
         transcriber = RealTimeTranscriber(api_key=args.key, host=args.host, output_format=args.format)
         transcriber.start()
         try:
-            # Run for 60 seconds in test mode.
+            # Run transcription for 60 seconds in test mode.
             await asyncio.sleep(60)
         finally:
             await transcriber.stop()
