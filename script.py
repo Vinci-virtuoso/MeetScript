@@ -5,6 +5,7 @@ import logging
 import asyncio
 import tempfile
 from selenium import webdriver
+from deepgram import DeepgramClient, PrerecordedOptions, FileSource
 from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
@@ -32,6 +33,7 @@ class GoogleMeetAutomator:
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
+        
         
 
     def setup_driver(self):
@@ -81,6 +83,22 @@ class GoogleMeetAutomator:
         except Exception as e:
             self.logger.info(f"Error detecting sign in button: {e}. Assuming user is already signed in.")
             return True
+    def is_user_signed_in(self):
+        """
+        Quickly determines if an account is already signed in by checking for the presence of 
+        the 'Sign in' button without waiting. If the 'Sign in' button is found, the user is not signed in.
+        """
+        try:
+            sign_in_elements = self.driver.find_elements(By.XPATH, "//span[contains(text(), 'Sign in')]")
+            if sign_in_elements and sign_in_elements[0].is_displayed():
+                self.logger.info("Sign in button found; user is not signed in.")
+                return False
+            else:
+                self.logger.info("Sign in button not found; assuming user is already signed in.")
+                return True
+        except Exception as e:
+            self.logger.info(f"Error detecting sign in button: {e}. Assuming user is already signed in.")
+            return True
     def handle_media_permissions(self):
         """
         Dismiss the media permissions prompt using Selenium explicit wait.
@@ -93,7 +111,9 @@ class GoogleMeetAutomator:
             dismiss_button.click()
             self.logger.info("Dismissed media permissions prompt using Selenium explicit wait.")
             return True
+        
         except Exception as e:
+            self.logger.info("No media permissions prompt detected via Selenium explicit wait.")
             self.logger.info("No media permissions prompt detected via Selenium explicit wait.")
             return False
 
@@ -145,6 +165,20 @@ class GoogleMeetAutomator:
         self.driver.save_screenshot("sign_in_failure.png")
         self.logger.error("All sign-in button selectors failed")
         return False
+        SIGN_IN_SELECTORS = [
+            "//span[contains(text(), 'Sign in')]",
+            "//div[contains(@aria-label, 'Sign in')]",
+            "//div[contains(@class, 'sign-in')]//button"
+        ]
+        
+        for selector in SIGN_IN_SELECTORS:
+            try:
+                return self.click_element(By.XPATH, selector, initial_delay=2)
+            except Exception as e:
+                self.logger.warning(f"Failed with selector {selector}: {e}")
+        self.driver.save_screenshot("sign_in_failure.png")
+        self.logger.error("All sign-in button selectors failed")
+        return False
 
     def login(self, username, password):
         wait = WebDriverWait(self.driver, 15)
@@ -175,7 +209,21 @@ class GoogleMeetAutomator:
         try:
             # Dismiss any possible media permission prompt.
             self.handle_media_permissions()
+            # Dismiss any possible media permission prompt.
+            self.handle_media_permissions()
             wait = WebDriverWait(self.driver, 15)
+            try:
+                # Preferred: Click the 'Ask to join' button.
+                ask_to_join_xpath = "//span[contains(text(), 'Ask to join')]"
+                ask_to_join_button = wait.until(EC.element_to_be_clickable((By.XPATH, ask_to_join_xpath)))
+                ask_to_join_button.click()
+                self.logger.info("Clicked 'Ask to join' button.")
+            except Exception:
+                # Fallback: With a persisted session, the button may be 'Join now' (i.e., allow to join).
+                join_now_xpath = "//span[contains(text(), 'Join now')]"
+                join_now_button = wait.until(EC.element_to_be_clickable((By.XPATH, join_now_xpath)))
+                join_now_button.click()
+                self.logger.info("Clicked 'Join now' button.")
             try:
                 # Preferred: Click the 'Ask to join' button.
                 ask_to_join_xpath = "//span[contains(text(), 'Ask to join')]"

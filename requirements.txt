@@ -1,5 +1,7 @@
 selenium
 deepgram-sdk
+selenium
+deepgram-sdk
 Pillow
 pyautogui
 uv

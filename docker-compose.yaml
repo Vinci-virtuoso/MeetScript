@@ -5,17 +5,11 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Persist your Selenium profile.
       - selenium_profile:/tmp/selenium_profile
-      # Mount the host's PulseAudio socket so the container can connect.
-      - "/run/user/1000/pulse:/run/user/1000/pulse"
     environment:
       - MEET_URL=${MEET_URL}
       - GOOGLE_USERNAME=${GOOGLE_USERNAME}
       - GOOGLE_PASSWORD=${GOOGLE_PASSWORD}
-      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
       - EDGE_DRIVER_PATH=/usr/local/bin/msedgedriver
-      # Tell applications where to find the PulseAudio server.
-      - PULSE_SERVER=unix:/run/user/1000/pulse/native
 volumes:
   selenium_profile:
