@@ -7,6 +7,7 @@ RUN apt-get update -o Acquire::Check-Valid-Until=false && apt-get install -y \
     libglib2.0-0 \
     libnss3 \
     libgconf-2-4 \
+    libgbm1 \
     libfontconfig1 \
     python3-tk \
     python3-dev \
@@ -17,12 +18,8 @@ RUN apt-get update -o Acquire::Check-Valid-Until=false && apt-get install -y \
     gnupg \
     pulseaudio \
     pulseaudio-utils \
-    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# Install websocat by downloading its precompiled binary
-RUN wget -O /usr/local/bin/websocat https://github.com/vi/websocat/releases/download/v1.7.0/websocat_amd64-linux \
-    && chmod +x /usr/local/bin/websocat
 
 WORKDIR /app
 
@@ -39,7 +36,7 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > mic
     && apt-get install -y microsoft-edge-stable
 
 # Download and install the Linux msedgedriver (ensure the URL matches your version)
-RUN wget -O msedgedriver.zip https://msedgedriver.azureedge.net/136.0.3240.92/edgedriver_linux64.zip \
+RUN wget -O msedgedriver.zip https://msedgedriver.azureedge.net/137.0.3296.62/edgedriver_linux64.zip \
     && unzip msedgedriver.zip -d /usr/local/bin/ \
     && chmod +x /usr/local/bin/msedgedriver \
     && rm msedgedriver.zip

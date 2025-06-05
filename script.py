@@ -42,29 +42,66 @@ class GoogleMeetAutomator:
                 self.logger.info(f"Lock file found in profile directory: {lock_file}. Removing it.")
                 os.remove(lock_file)
 
+            # Debug: Check if msedgedriver exists at the expected driver path
+            self.logger.debug(f"Type of self.driver_path: {type(self.driver_path)}; value: {self.driver_path}")
+            if os.path.exists(self.driver_path):
+                self.logger.info(f"msedgedriver found at {self.driver_path}")
+            else:
+                self.logger.error(f"msedgedriver NOT found at {self.driver_path}")
+
+            # Debug: Check for the Microsoft Edge browser binary
+            edge_binary = "/usr/bin/microsoft-edge"
+            if os.path.exists(edge_binary):
+                self.logger.info(f"Microsoft Edge binary found at {edge_binary}")
+            else:
+                self.logger.error(f"Microsoft Edge binary NOT found at {edge_binary}")
+
+            # Debug: Retrieve and log Microsoft Edge version
+            try:
+                import subprocess
+                edge_version = subprocess.check_output([edge_binary, "--version"], text=True).strip()
+                self.logger.info(f"Microsoft Edge version: {edge_version}")
+            except Exception as ex:
+                self.logger.error(f"Failed to retrieve Microsoft Edge version: {ex}")
+
+            self.logger.info("Initializing Selenium Options for Edge WebDriver")
             options = Options()
+            options.use_chromium = True
+            # Set binary_location to the Microsoft Edge browser binary, not the driver
+            options.binary_location = edge_binary
+            self.logger.debug(f"Selenium Options binary_location set to: {options.binary_location}")
+
             options.add_argument('--no-sandbox')
             options.add_argument('--disable-dev-shm-usage')
             options.add_argument('--force-dark-mode')
             options.add_argument("--disable-extensions")
             options.add_argument("--window-size=1920,1080")
-            #options.add_argument(f"--user-data-dir={self.profile_path}")
+            # options.add_argument(f"--user-data-dir={self.profile_path}")
             options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_experimental_option("excludeSwitches", ["enable-automation"])
             options.add_experimental_option("useAutomationExtension", False)
+            # Added option to disable notifications that might include microphone and camera prompts
+            options.add_argument("--disable-notifications")
+            # Automatically block microphone and camera permission pop-ups
             options.add_experimental_option("prefs", {
                 "profile.managed_default_content_settings.media_stream_mic": 2,
                 "profile.managed_default_content_settings.media_stream_camera": 2,
                 "profile.default_content_setting_values.media_stream_mic": 2,
-                "profile.default_content_setting_values.media_stream_camera": 2
+                "profile.default_content_setting_values.media_stream_camera": 2,
+                "profile.default_content_setting_values.notifications": 2
             })
+            self.logger.debug(f"Selenium Options arguments: {options.arguments}")
+
+            self.logger.info(f"Initializing EdgeService with executable_path: {self.driver_path}")
             service = EdgeService(executable_path=self.driver_path)
+            self.logger.info("Creating Edge WebDriver instance now")
             self.driver = webdriver.Edge(service=service, options=options)
             self.logger.info("WebDriver initialized successfully")
             return True
         except Exception as e:
             self.logger.error(f"Failed to initialize WebDriver: {e}")
             return False
+        
     def is_user_signed_in(self):
         """
         Quickly determines if an account is already signed in by checking for the presence of 

@@ -34,17 +34,10 @@ async def echo_tool(message: str) -> str:
 @mcp_logic_controller.tool()
 async def join_google_meet_tool(meeting_url: str, google_username: str, google_password: str) -> dict:
     logger.info("MCP SERVER (SeleniumGoogleMeetControl): join_google_meet_tool invoked")
-    # A dummy recorder to satisfy the automator's requirements.
-    class DummyRecorder:
-        def start_recording(self):
-            return True
-        def stop_recording(self):
-            return True
-
     try:
         def automator_flow():
-            dummy_recorder = DummyRecorder()
-            automator = GoogleMeetAutomator(dummy_recorder)
+            # Create GoogleMeetAutomator using the default driver_path.
+            automator = GoogleMeetAutomator()
             if not automator.setup_driver():
                 raise Exception("Driver setup failed")
             if not automator.go_to_meet(meeting_url):
@@ -67,6 +60,7 @@ async def join_google_meet_tool(meeting_url: str, google_username: str, google_p
     except Exception as e:
         logger.error(f"Error in join_google_meet_tool: {e}")
         return {"success": False, "error": str(e)}
+    
 @mcp_logic_controller.tool()
 async def transcribe_google_meet_tool(
     meeting_url: str,
