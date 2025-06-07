@@ -1,15 +1,22 @@
 import logging
 import os
 import uvicorn
-import asyncio
+from groundx import AsyncGroundX, Document
+from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from mcp.server import Server  # for type hinting and accessing underlying server
 from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.routing import Mount, Route
-
 from script import GoogleMeetAutomator
+
+
+load_dotenv()
+
+api_key = os.getenv("GROUNDX_API_KEY")
+print("GROUNDX_API_KEY:", api_key)
+client = AsyncGroundX(api_key=api_key)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,37 +36,6 @@ logger.info("FastMCP instance for 'SeleniumGoogleMeetControl' created.")
 async def echo_tool(message: str) -> str:
     logger.info(f"MCP SERVER (SeleniumGoogleMeetControl): echo_tool received: '{message}'")
     return f"Echo from SeleniumGoogleMeetControl server (SSE): {message}"
-
-# Register the tool to autojoin Google Meet using Selenium (via GoogleMeetAutomator).
-@mcp_logic_controller.tool()
-async def join_google_meet_tool(meeting_url: str, google_username: str, google_password: str) -> dict:
-    logger.info("MCP SERVER (SeleniumGoogleMeetControl): join_google_meet_tool invoked")
-    try:
-        def automator_flow():
-            # Create GoogleMeetAutomator using the default driver_path.
-            automator = GoogleMeetAutomator()
-            if not automator.setup_driver():
-                raise Exception("Driver setup failed")
-            if not automator.go_to_meet(meeting_url):
-                raise Exception("Failed to go to Meet URL")
-            if not automator.is_user_signed_in():
-                if not automator.click_sign_in():
-                    raise Exception("Failed to click sign in")
-                if not automator.login(google_username, google_password):
-                    raise Exception("Login failed")
-            else:
-                automator.logger.info("User is already signed in; skipping login.")
-            automator.join_meet()
-            import time
-            time.sleep(5)  # Wait briefly to allow join actions to complete.
-            automator.cleanup()
-            return True
-
-        result = await asyncio.to_thread(automator_flow)
-        return {"success": result}
-    except Exception as e:
-        logger.error(f"Error in join_google_meet_tool: {e}")
-        return {"success": False, "error": str(e)}
     
 @mcp_logic_controller.tool()
 async def transcribe_google_meet_tool(
@@ -84,6 +60,49 @@ async def transcribe_google_meet_tool(
     except Exception as e:
         logger.error(f"Error while transcribing: {e}", exc_info=True)
         return {"success": False, "error": str(e)}
+    
+@mcp_logic_controller.tool()
+async def search_doc_for_rag_context(query: str) -> str:
+    """
+    Searches and retrieves relevant context from a knowledge base,
+    based on the user's query.
+    Args:
+        query: The search query supplied by the user.
+    Returns:
+        str: Relevant text content that can be used by the LLM to answer the query.
+    """
+    response =await client.search.content(
+        id=19356,
+        query=query,
+        n=10,
+    )
+
+    return response.search.text
+
+@mcp_logic_controller.tool()
+async def ingest_documents(local_file_path: str) -> dict:
+    """
+    Ingest documents from a local file into the knowledge base.
+    Args:
+        local_file_path: The path to the local file containing the documents to ingest.
+    Returns:
+        dict: A dictionary with keys 'success' and 'message' indicating the result of the ingestion.
+    """
+    # Use the fixed file path as specified
+    file_path = "@transcript.txt"
+    file_name = os.path.basename(file_path)
+    client.ingest(
+        documents=[
+            Document(
+                bucket_id=19356,
+                file_name=file_name,
+                file_path=file_path,
+                file_type="txt",
+                search_data={"key": "value"},
+            )
+        ]
+    )
+    return {"success": True, "message": f"Ingested {file_name} into the knowledge base. It should be available in a few minutes"}
 # Define startup and shutdown functions for Starlette.
 async def lifespan_startup():
     logger.info("Selenium automation startup.")

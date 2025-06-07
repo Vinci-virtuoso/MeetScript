@@ -12,3 +12,4 @@ mcp
 starlette
 websockets==9.1
 pyaudio
+groundx

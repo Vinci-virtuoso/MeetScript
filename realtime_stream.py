@@ -46,21 +46,21 @@ CHANNELS = 1
 RATE = 16000
 CHUNK = 8000
 audio_queue = asyncio.Queue()
-REALTIME_RESOLUTION = 0.250
+REALTIME_RESOLUTION = 0.1
 subtitle_line_counter = 0
 
 def log_audio_devices():
     pa = pyaudio.PyAudio()
     device_count = pa.get_device_count()
-    print(f"Found {device_count} audio devices:")
+    print(f"Found {device_count} audio devices:",flush=True)
     for i in range(device_count):
         try:
             info = pa.get_device_info_by_index(i)
-            print(f"Device {i}: {info.get('name')}, Input Channels: {info.get('maxInputChannels')}")
+            print(f"Device {i}: {info.get('name')}, Input Channels: {info.get('maxInputChannels')}",flush=True)
         except Exception as e:
-            print(f"Error getting info for device {i}: {e}")
+            print(f"Error getting info for device {i}: {e}",flush=True)
     if device_count == 0:
-        print("WARNING: No audio devices available!")
+        print("WARNING: No audio devices available!",flush=True)
     pa.terminate()
 
 # Log available audio devices.
@@ -78,9 +78,21 @@ try:
         stream_callback=lambda in_data, frame_count, time_info, status: (in_data, pyaudio.paContinue)
     )
     stream.start_stream()
-    print("Audio stream initialized successfully.")
+    print("Audio stream initialized successfully.",flush=True)
 except Exception as e:
-    print(f"ERROR initializing audio stream: {e}")
+    print(f"ERROR initializing audio stream: {e}",flush=True)
+
+def close_audio_stream():
+    global stream, audio
+    try:
+        if stream is not None:
+            stream.stop_stream()
+            stream.close()
+        if audio is not None:
+            audio.terminate()
+        print("Audio stream closed and PyAudio terminated.", flush=True)
+    except Exception as e:
+        print(f"Error closing audio stream: {e}", flush=True)
 
 def subtitle_time_formatter(seconds, separator):
     hours = int(seconds // 3600)
@@ -126,12 +138,12 @@ async def run(key, method, output_format, **kwargs):
                 print(f'ℹ️  Model: {kwargs["model"]}')
             if kwargs.get("tier"):
                 print(f'ℹ️  Tier: {kwargs["tier"]}')
-            print("🟢 (1/5) Successfully opened Deepgram streaming connection")
+            print("🟢 (1/5) Successfully opened Deepgram streaming connection",flush=True)
     
             async def sender(ws):
                 print(
                     f'🟢 (2/5) Ready to stream {"mic" if method=="mic" else kwargs.get("filepath", "audio")} audio to Deepgram' +
-                    (". Speak into your microphone to transcribe." if method=="mic" else "")
+                    (". Speak into your microphone to transcribe." if method=="mic" else ""),flush=True
                 )
                 if method == "mic":
                     try:
@@ -141,9 +153,9 @@ async def run(key, method, output_format, **kwargs):
                             await ws.send(mic_data)
                     except websockets.exceptions.ConnectionClosedOK:
                         await ws.send(json.dumps({"type": "CloseStream"}))
-                        print("🟢 (5/5) Successfully closed Deepgram connection, waiting for final transcripts if necessary")
+                        ("🟢 (5/5) Successfully closed Deepgram connection, waiting for final transcripts if necessary")
                     except Exception as e:
-                        print(f"Error while sending: {str(e)}")
+                        print(f"Error while sending: {str(e)}",flush=True)
                         raise
                 elif method == "url":
                     async with aiohttp.ClientSession() as session:
@@ -163,9 +175,9 @@ async def run(key, method, output_format, **kwargs):
                             await asyncio.sleep(REALTIME_RESOLUTION)
                             await ws.send(chunk)
                         await ws.send(json.dumps({"type": "CloseStream"}))
-                        print("🟢 (5/5) Successfully closed Deepgram connection, waiting for final transcripts if necessary")
+                        print("🟢 (5/5) Successfully closed Deepgram connection, waiting for final transcripts if necessary",flush=True)
                     except Exception as e:
-                        print(f"🔴 ERROR: Something happened while sending, {e}")
+                        print(f"🔴 ERROR: Something happened while sending, {e}",flush=True)
                         raise e
                 return
 
@@ -173,34 +185,42 @@ async def run(key, method, output_format, **kwargs):
                 first_message = True
                 first_transcript = True
                 transcript = ""
+                termination_event = kwargs.get("termination_event")
                 async for msg in ws:
                     res = json.loads(msg)
                     if first_message:
-                        print("🟢 (3/5) Successfully receiving Deepgram messages, waiting for finalized transcription...")
+                        print("🟢 (3/5) Successfully receiving Deepgram messages, waiting for finalized transcription...",flush=True)
                         first_message = False
                     try:
                         if res.get("msg"):
-                            print(res["msg"])
+                            print(res["msg"],flush=True)
                         if res.get("is_final"):
                             transcript = res.get("channel", {}).get("alternatives", [{}])[0].get("transcript", "")
-                            if kwargs.get("timestamps"):
-                                words = res.get("channel", {}).get("alternatives", [{}])[0].get("words", [])
-                                start = words[0]["start"] if words else None
-                                end = words[-1]["end"] if words else None
-                                transcript += f" [{start} - {end}]" if (start and end) else ""
+                            #if kwargs.get("timestamps"):
+                                #words = res.get("channel", {}).get("alternatives", [{}])[0].get("words", [])
+                                #start = words[0]["start"] if words else None
+                                #end = words[-1]["end"] if words else None
+                                #transcript += f" [{start} - {end}]" if (start and end) else ""
                             if transcript != "":
                                 if first_transcript:
-                                    print("🟢 (4/5) Began receiving transcription")
+                                    print("🟢 (4/5) Began receiving transcription",flush=True)
                                     if output_format == "vtt":
-                                        print("WEBVTT\n")
+                                        print("WEBVTT\n",flush=True)
                                     first_transcript = False
                                 if output_format in ("vtt", "srt"):
                                     transcript = subtitle_formatter(res, output_format)
-                                print(transcript)
+                                print(transcript,flush=True)
                                 all_transcripts.append(transcript)
+                                with open("transcript.txt", "a") as transcript_file:
+                                 transcript_file.write(transcript + "\n")
                             if method == "mic" and "goodbye" in transcript.lower():
                                 await ws.send(json.dumps({"type": "CloseStream"}))
-                                print("🟢 (5/5) Successfully closed Deepgram connection, waiting for final transcripts if necessary")
+                                if termination_event:
+                                    termination_event.set()   # <-- Set the termination signal
+                                print("🟢 (5/5) Successfully closed Deepgram connection, waiting for final transcripts if necessary", flush=True)
+                                await ws.close()  # Explicitly close the websocket.
+                                break
+                                print("🟢 (5/5) Successfully closed Deepgram connection, waiting for final transcripts if necessary",flush=True)
                         if res.get("created"):
                             if output_format in ("vtt", "srt"):
                                 data_dir = os.path.abspath(os.path.join(os.path.curdir, "data"))
@@ -218,8 +238,8 @@ async def run(key, method, output_format, **kwargs):
                                     wave_file.setframerate(RATE)
                                     wave_file.writeframes(b"".join(all_mic_data))
                                     wave_file.close()
-                                    print(f"🟢 Mic audio saved to {wave_file_path}")
-                            print(f'🟢 Request finished with a duration of {res["duration"]} seconds. Exiting!')
+                                    print(f"🟢 Mic audio saved to {wave_file_path}",flush=True)
+                            print(f'🟢 Request finished with a duration of {res["duration"]} seconds. Exiting!',flush=True)
                     except KeyError:
                         print(f"🔴 ERROR: Received unexpected API response! {msg}")
     
@@ -265,10 +285,11 @@ class RealTimeTranscriber:
         self.timestamps = timestamps
         self.task = None
         self.running = False
+        self.termination_event = asyncio.Event()
 
     async def _stream(self):
         try:
-            await run(self.api_key, "mic", self.output_format, host=self.host, model=self.model, tier=self.tier, timestamps=self.timestamps)
+            await run(self.api_key, "mic", self.output_format, host=self.host, model=self.model, tier=self.tier, timestamps=self.timestamps,termination_event=self.termination_event)
         except asyncio.CancelledError:
             pass
         except Exception as e:
@@ -278,17 +299,20 @@ class RealTimeTranscriber:
         if not self.running:
             self.running = True
             self.task = asyncio.create_task(self._stream())
-            print("Real-time transcription started.")
+            print("Real-time transcription started.",flush=True)
     
     async def stop(self):
         if self.task and not self.task.done():
             self.task.cancel()
             try:
-                await self.task
-            except asyncio.CancelledError:
-                pass
-            print("Real-time transcription stopped.")
+                # Wrap the task cancellation with a timeout of 10 seconds.
+                await asyncio.wait_for(self.task, timeout=10)
+            except (asyncio.CancelledError, asyncio.TimeoutError):
+                print("Real-time transcription task cancellation timed out or cancelled.", flush=True)
             self.running = False
+            print("Real-time transcription stopped.", flush=True)
+        # Ensure that the PyAudio stream is closed.
+        close_audio_stream()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Real-time transcription using Deepgram (mic mode).")

@@ -25,14 +25,9 @@ echo "Starting server.py..."
 python server.py &
 server_pid=$!
 
-# Start script.py in the background.
-echo "Starting script.py..."
-python script.py &
-script_pid=$!
 
 # Optionally, print process IDs for debugging.
 echo "server.py PID: ${server_pid}"
-echo "script.py PID: ${script_pid}"
 
 # Wait for all background processes to finish.
 wait

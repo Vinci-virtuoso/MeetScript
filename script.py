@@ -13,6 +13,22 @@ from selenium.webdriver.support import expected_conditions as EC
 import pyautogui  
 from realtime_stream import RealTimeTranscriber
 
+# Global variable for the persistent automator instance
+persistent_automator = None
+
+def get_automator():
+    """Get or create a persistent GoogleMeetAutomator instance."""
+    global persistent_automator
+    if persistent_automator is None:
+        from script import GoogleMeetAutomator  # ensure import if necessary
+        persistent_automator = GoogleMeetAutomator()
+    return persistent_automator
+
+def clear_automator_session():
+    """Clear the persistent GoogleMeetAutomator instance."""
+    global persistent_automator
+    persistent_automator = None
+
 class GoogleMeetAutomator:
     MEDIA_CONTINUE_IMAGE = r'C:\Users\ayo\MeetScript\directions\continue_without_media.png'
 
@@ -249,6 +265,35 @@ class GoogleMeetAutomator:
 
         self.join_meet()
         self.logger.info("Meeting joined successfully.")
+
+        # Start the real-time transcription.
+        transcriber = RealTimeTranscriber(deepgram_api_key, output_format="text", timestamps=True)
+        transcriber.start()
+
+        start_time = time.time()
+        try:
+            while time.time() - start_time < meeting_duration:
+                try:
+                    if not self.driver.window_handles:
+                        self.logger.info("Browser window closed. Ending automation loop.")
+                        break
+                except Exception as e:
+                    self.logger.error(f"Browser error: {e}. Ending automation loop.")
+                    break
+                # Check if the termination event was set (trigger word "goodbye" detected).
+                if transcriber.termination_event.is_set():
+                    self.logger.info("Termination event triggered by 'goodbye' command.")
+                    break
+                await asyncio.sleep(1)
+        finally:
+            try:
+                await asyncio.wait_for(transcriber.stop(), timeout=5)
+            except asyncio.TimeoutError:
+                self.logger.error("Timed out waiting for transcriber.stop()")
+            except Exception as err:
+                self.logger.error(f"Error calling transcriber.stop: {err}")
+            self.cleanup()
+            clear_automator_session()
 
 
         # Now, start the real-time transcription
