@@ -220,7 +220,6 @@ async def run(key, method, output_format, **kwargs):
                                 print("🟢 (5/5) Successfully closed Deepgram connection, waiting for final transcripts if necessary", flush=True)
                                 await ws.close()  # Explicitly close the websocket.
                                 break
-                                print("🟢 (5/5) Successfully closed Deepgram connection, waiting for final transcripts if necessary",flush=True)
                         if res.get("created"):
                             if output_format in ("vtt", "srt"):
                                 data_dir = os.path.abspath(os.path.join(os.path.curdir, "data"))

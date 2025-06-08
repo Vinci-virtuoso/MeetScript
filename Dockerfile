@@ -58,5 +58,6 @@ ENV EDGE_DRIVER_PATH=/usr/local/bin/msedgedriver
 ENV PULSE_SERVER=tcp:host.docker.internal:4713
 
 EXPOSE 8000
+EXPOSE 8001
 
 ENTRYPOINT ["/app/entrypoint.sh"]

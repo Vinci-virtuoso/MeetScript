@@ -8,9 +8,10 @@ from mcp.server import Server  # for type hinting and accessing underlying serve
 from mcp.server.sse import SseServerTransport
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.routing import Mount, Route
+from starlette.routing import Route, Mount, WebSocketRoute
+from starlette.websockets import WebSocket
+from starlette.endpoints import WebSocketEndpoint
 from script import GoogleMeetAutomator
-
 
 load_dotenv()
 
@@ -26,9 +27,7 @@ SERVER_HOST = os.getenv("MCP_SERVER_HOST", "0.0.0.0")
 SERVER_PORT = int(os.getenv("MCP_SERVER_PORT", "8000"))
 
 # Create the FastMCP instance with a Selenium-specific name.
-mcp_logic_controller = FastMCP(
-    name="SeleniumGoogleMeetControl"
-)
+mcp_logic_controller = FastMCP(name="SeleniumGoogleMeetControl")
 logger.info("FastMCP instance for 'SeleniumGoogleMeetControl' created.")
 
 # Register the echo tool for testing.
@@ -71,16 +70,15 @@ async def search_doc_for_rag_context(query: str) -> str:
     Returns:
         str: Relevant text content that can be used by the LLM to answer the query.
     """
-    response =await client.search.content(
+    response = await client.search.content(
         id=19356,
         query=query,
         n=10,
     )
-
     return response.search.text
 
 @mcp_logic_controller.tool()
-async def ingest_documents(local_file_path: str) -> dict:
+async def ingest_documents(file_path: str) -> dict:
     """
     Ingest documents from a local file into the knowledge base.
     Args:
@@ -102,77 +100,116 @@ async def ingest_documents(local_file_path: str) -> dict:
             )
         ]
     )
-    return {"success": True, "message": f"Ingested {file_name} into the knowledge base. It should be available in a few minutes"}
-# Define startup and shutdown functions for Starlette.
-async def lifespan_startup():
-    logger.info("Selenium automation startup.")
+    return {"success": True, "message": f"Ingested {file_name} into the knowledge base. It is now available to ask question"}
 
-async def lifespan_shutdown():
-    logger.info("Selenium automation shutdown.")
 
-def create_starlette_app(
-    mcp_server_instance: Server,
-    sse_endpoint_path: str = "/sse",
-    post_message_prefix: str = "/messages/",
-    debug: bool = False
-) -> Starlette:
-    """
-    Creates a Starlette application to serve the MCP server with SSE transport.
-    """
-    sse_transport = SseServerTransport(post_message_prefix)
+# -------------------------------------------------------
+# WebSocket handler to receive direct commands from clients
+# -------------------------------------------------------
+class WSHandler(WebSocketEndpoint):
+    encoding = "json"
 
-    async def handle_sse_connection(request: Request) -> None:
-        async with sse_transport.connect_sse(
-            request.scope,
-            request.receive,
-            request._send,
-        ) as (read_stream, write_stream):
-            await mcp_server_instance.run(
-                read_stream,
-                write_stream,
-                mcp_server_instance.create_initialization_options(),
-            )
+    async def on_connect(self, websocket: WebSocket):
+        await websocket.accept()
+        logger.info("WebSocket connection accepted on /ws")
 
+    async def on_receive(self, websocket: WebSocket, data):
+        msg_type = data.get("type")
+        payload = data.get("payload", {})
+        logger.info("Received message of type: %s", msg_type)
+
+        if msg_type == "start_transcription":
+            try:
+                result = await transcribe_google_meet_tool(**payload)
+                await websocket.send_json({
+                    "type": "transcription_complete",
+                    "payload": {"result": result}
+                })
+            except Exception as e:
+                logger.error("Error during transcription: %s", e)
+                await websocket.send_json({
+                    "type": "error",
+                    "payload": {"message": "Transcription failed."}
+                })
+
+        elif msg_type == "ingest_document":
+            try:
+                result = await ingest_documents(payload)
+                await websocket.send_json({
+                    "type": "ingest_complete",
+                    "payload": {"result": result}
+                })
+            except Exception as e:
+                logger.error("Error during document ingestion: %s", e)
+                await websocket.send_json({
+                    "type": "error",
+                    "payload": {"message": "Document ingestion failed."}
+                })
+
+        elif msg_type == "chat_query":
+            try:
+                query = payload.get("query", "")
+                if not query:
+                    await websocket.send_json({
+                        "type": "error",
+                        "payload": {"message": "Empty query received."}
+                    })
+                    return
+                result = await search_doc_for_rag_context(payload)
+                await websocket.send_json({
+                    "type": "chat_response",
+                    "payload": {"response": result}
+                })
+            except Exception as e:
+                logger.error("Error during chat query: %s", e)
+                await websocket.send_json({
+                    "type": "error",
+                    "payload": {"message": "Chat query failed."}
+                })
+
+        else:
+            logger.warning("Unknown message type received: %s", msg_type)
+            await websocket.send_json({
+                "type": "error",
+                "payload": {"message": f"Unknown message type: {msg_type}"}
+            })
+
+    async def on_disconnect(self, websocket: WebSocket, close_code: int):
+        logger.info("WebSocket disconnected with code: %s", close_code)
+
+# -------------------------------------------------------
+# SSE endpoint for original MCP client functionality
+# -------------------------------------------------------
+async def handle_sse_connection(request: Request) -> None:
+    sse_transport = SseServerTransport("/messages/")
+    async with sse_transport.connect_sse(request.scope, request.receive, request._send) as (read_stream, write_stream):
+        await mcp_logic_controller._mcp_server.run(
+            read_stream,
+            write_stream,
+            mcp_logic_controller._mcp_server.create_initialization_options()
+        )
+
+# -------------------------------------------------------
+# Create the Starlette application with required routes
+# -------------------------------------------------------
+def create_starlette_app() -> Starlette:
     app = Starlette(
-        debug=debug,
+        debug=True,
         routes=[
-            Route(sse_endpoint_path, endpoint=handle_sse_connection, name="mcp_sse_endpoint"),
-            Mount(post_message_prefix, app=sse_transport.handle_post_message, name="mcp_post_messages"),
+            Route("/sse", endpoint=handle_sse_connection, name="mcp_sse_endpoint"),
+            Mount("/messages/", app=SseServerTransport("/messages/").handle_post_message, name="mcp_post_messages"),
+            # Pass the WSHandler class (not an instance) to WebSocketRoute.
+            WebSocketRoute("/ws", WSHandler)
         ],
-        on_startup=[lifespan_startup],
-        on_shutdown=[lifespan_shutdown],
+        on_startup=[lambda: logger.info("Selenium automation startup.")],
+        on_shutdown=[lambda: logger.info("Selenium automation shutdown.")]
     )
     return app
 
 def main():
-    try:
-        logger.info("Configuring SeleniumGoogleMeetControl MCP Server with Starlette and SSE transport.")
-
-        # Get the underlying MCP Server instance.
-        actual_mcp_server: Server = mcp_logic_controller._mcp_server
-
-        # Create the Starlette application.
-        starlette_app = create_starlette_app(
-            actual_mcp_server,
-            sse_endpoint_path="/sse",
-            post_message_prefix="/messages/",
-            debug=True
-        )
-
-        logger.info(f"Starting Uvicorn server. Listening on {SERVER_HOST}:{SERVER_PORT}.")
-        logger.info(f"MCP SSE endpoint will be available at http://{SERVER_HOST}:{SERVER_PORT}/sse")
-
-        # Run the Starlette app with Uvicorn.
-        uvicorn.run(
-            starlette_app,
-            host=SERVER_HOST,
-            port=SERVER_PORT,
-            log_level="info"
-        )
-    except KeyboardInterrupt:
-        logger.info("MCP Server interrupted by user. Graceful shutdown initiated.")
-    except Exception as e:
-        logger.error(f"An error occurred running the MCP server with Uvicorn: {e}", exc_info=True)
+    logger.info(f"Starting Uvicorn server on {SERVER_HOST}:{SERVER_PORT}")
+    app = create_starlette_app()
+    uvicorn.run(app, host=SERVER_HOST, port=SERVER_PORT, log_level="info")
 
 if __name__ == "__main__":
     main()
