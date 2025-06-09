@@ -137,7 +137,7 @@ async def search_doc_for_rag_context(query: str, openai_api_key: str, groundx_ap
 async def ingest_documents(file_path: str, groundx_api_key: str) -> dict:
     client = AsyncGroundX(api_key=groundx_api_key)
     # Override the file_path to always use r'transcript.txt'
-    file_path = r'transcript.txt'
+    file_path = r'backend/transcript.txt'
     logger.info(f"ingest_documents invoked with file_path: '{file_path}'")
     try:
         file_name = os.path.basename(file_path)

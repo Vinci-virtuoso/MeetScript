@@ -211,7 +211,7 @@ async def run(key, method, output_format, **kwargs):
                                     transcript = subtitle_formatter(res, output_format)
                                 print(transcript,flush=True)
                                 all_transcripts.append(transcript)
-                                with open("transcript.txt", "a") as transcript_file:
+                                with open("backend/transcript.txt", "w") as transcript_file:
                                  transcript_file.write(transcript + "\n")
                             if method == "mic" and "goodbye" in transcript.lower():
                                 await ws.send(json.dumps({"type": "CloseStream"}))

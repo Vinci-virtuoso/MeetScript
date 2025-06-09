@@ -112,7 +112,7 @@ export default function MeetTranscriptApp() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          file_path: "transcript.txt",
+          file_path: "backend/transcript.txt",
           groundx_api_key: meetingConfig.groundXApiKey // Ensure this is included
         })
       });

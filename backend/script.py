@@ -29,8 +29,6 @@ def clear_automator_session():
     persistent_automator = None
 
 class GoogleMeetAutomator:
-    MEDIA_CONTINUE_IMAGE = r'C:\Users\ayo\MeetScript\directions\continue_without_media.png'
-
     def __init__(self, driver_path=r'/usr/local/bin/msedgedriver'):
         self.driver_path = driver_path
         self.driver = None
