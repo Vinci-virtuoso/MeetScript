@@ -13,3 +13,4 @@ starlette
 websockets==12.0
 pyaudio
 groundx
+fastapi

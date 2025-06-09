@@ -82,7 +82,7 @@ class GoogleMeetAutomator:
             self.logger.info("Initializing Selenium Options for Edge WebDriver")
             options = Options()
             options.use_chromium = True
-            # Set binary_location to the Microsoft Edge browser binary, not the driver
+            #Set binary_location to the Microsoft Edge browser binary, not the driver
             options.binary_location = edge_binary
             self.logger.debug(f"Selenium Options binary_location set to: {options.binary_location}")
 
