@@ -108,11 +108,12 @@ export default function MeetTranscriptApp() {
   const handleUploadTranscript = async () => {
     addStatusUpdate("info", "Sending ingest transcript request...");
     try {
+      const transcriptPath='transcript.txt';
       const res = await fetch('http://localhost:8000/api/ingest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          file_path: "backend/transcript.txt",
+          file_path: transcriptPath,
           groundx_api_key: meetingConfig.groundXApiKey // Ensure this is included
         })
       });

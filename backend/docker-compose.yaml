@@ -6,7 +6,8 @@ services:
       - "8000:8000"
     volumes:
       # Persist your Selenium profile.
-      - selenium_profile:/tmp/selenium_profile
+      - selenium_profile:/tmp/
+      - ./transcript.txt:/app/transcript.txt
       # Mount the host's PulseAudio socket so the container can connect.
       - "/tmp/pulse:/tmp/pulse"
     environment:
