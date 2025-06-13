@@ -86,10 +86,13 @@ class GoogleMeetAutomator:
 
             options.add_argument('--no-sandbox')
             options.add_argument('--disable-dev-shm-usage')
+            options.add_argument("--remote-debugging-port=9222")
             options.add_argument('--force-dark-mode')
             options.add_argument("--disable-extensions")
             options.add_argument("--window-size=1920,1080")
+            
             # options.add_argument(f"--user-data-dir={self.profile_path}")
+            
             options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_experimental_option("excludeSwitches", ["enable-automation"])
             options.add_experimental_option("useAutomationExtension", False)
@@ -106,7 +109,7 @@ class GoogleMeetAutomator:
             self.logger.debug(f"Selenium Options arguments: {options.arguments}")
 
             self.logger.info(f"Initializing EdgeService with executable_path: {self.driver_path}")
-            service = EdgeService(executable_path=self.driver_path)
+            service = EdgeService(executable_path=self.driver_path,timeout=300)
             self.logger.info("Creating Edge WebDriver instance now")
             self.driver = webdriver.Edge(service=service, options=options)
             self.logger.info("WebDriver initialized successfully")

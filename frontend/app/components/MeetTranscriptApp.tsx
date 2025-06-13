@@ -81,7 +81,7 @@ export default function MeetTranscriptApp() {
     setIsProcessing(true);
     addStatusUpdate('info', 'Initiating meeting join and transcription...');
     try {
-      const res = await fetch('http://localhost:8000/api/transcribe', {
+      const res = await fetch('https://backend-meetscript.onrender.com/api/transcribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,7 +109,7 @@ export default function MeetTranscriptApp() {
     addStatusUpdate("info", "Sending ingest transcript request...");
     try {
       const transcriptPath='transcript.txt';
-      const res = await fetch('http://localhost:8000/api/ingest', {
+      const res = await fetch('https://backend-meetscript.onrender.com/api/ingest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -159,7 +159,7 @@ export default function MeetTranscriptApp() {
     setChatMessages(prev => [...prev, userMessage]);
   
     try {
-      const res = await fetch('http://localhost:8000/api/search', {
+      const res = await fetch('https://backend-meetscript.onrender.com/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
