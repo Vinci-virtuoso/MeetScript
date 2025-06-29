@@ -44,8 +44,8 @@ export default function MeetTranscriptApp() {
   const [meetingConfig, setMeetingConfig] = useState<MeetingConfig>({
     meetingUrl: '',
     deepgramApiKey: '',
-    googleUsername: 'badbunnyvinc@gmail.com',
-    googlePassword: 'Iaminevitable',
+    googleUsername: '',
+    googlePassword: '',
     openaiApiKey: '',
     groundXApiKey: '',
     duration: 3600
