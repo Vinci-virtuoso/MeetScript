@@ -10,7 +10,7 @@ MeetScript programmatically joins scheduled Google Meet sessions, streams the li
 
 <!-- Replace demo.gif below with your converted clip -->
 <p align="center">
-  <img src="docs/demo.gif" alt="MeetScript demo" width="720" />
+  <img src="https://raw.githubusercontent.com/Vinci-virtuoso/MeetScript/new_test_branch/docs/demo.gif" alt="MeetScript demo" width="720" />
 </p>
 
 ---
