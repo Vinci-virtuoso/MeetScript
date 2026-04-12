@@ -1,155 +1,166 @@
+# MeetScript AI
 
-MeetScript AI is an intelligent Google Meet recording and transcription service that automates meeting participation, provides real-time transcription with speaker diarization, and enables AI-powered querying of meeting content through a Retrieval-Augmented Generation (RAG) system.
+**An AI meeting agent that joins Google Meet calls, transcribes them in real time, and lets you query the transcript with natural language — exposed as MCP tools any AI assistant can call.**
 
-## 🚀 Features
+MeetScript programmatically joins scheduled Google Meet sessions, streams the live audio to Deepgram for real-time speaker-diarized transcription, ingests the transcript into a GroundX-backed RAG store, and uses OpenAI structured outputs to pull summaries and actionable items out of the conversation. The whole pipeline is wrapped in a FastAPI + FastMCP server with SSE transport, so any MCP-compatible AI assistant can drive it.
 
-### Core Functionality
-- **Automated Meeting Joining**: Programmatically joins scheduled Google Meet sessions using Selenium WebDriver
-- **Real-time Audio Capture**: Captures live audio from Google Meet sessions using virtual display technology
-- **Live Transcription**: Streams audio to Deepgram for real-time, speaker-diarized transcription
-- **Persistent Storage**: Securely stores raw meeting audio recordings and transcription data
-- **RAG-based Querying**: Enables users to ask questions about meeting content using AI-powered search
-- **MCP Integration**: Provides Model Context Protocol (MCP) tools for seamless AI assistant integration
+---
 
-### Technical Capabilities
-- **Dockerized Environment**: Runs in isolated containers with virtual display (Xvfb) and audio processing (PulseAudio)
-- **HTTP API**: Real-time frontend updates with dynamic status reporting
-- **Session Persistence**: Handles Google account authentication with persistent browser profiles
-- **Resource Management**: Efficient management of browser contexts and audio streams
+## 🎬 Demo
 
-## 🏗️ Architecture
+<!-- Replace demo.gif below with your converted clip -->
+<p align="center">
+  <img src="docs/demo.gif" alt="MeetScript demo" width="720" />
+</p>
 
-The system consists of several integrated components:
+---
 
-1. **Meeting Automation** (`script.py`): Selenium-based Google Meet automation
-2. **Real-time Transcription** (`realtime_stream.py`): Deepgram integration for real-time transcription
-3. **MCP Server** (`server.py`): FastMCP server providing tool endpoints
-4. **MCP Client** (`client.py`): OpenAI-integrated client for AI interactions
-5. **Docker Environment**: Containerized execution with virtual display and audio
+## 🏗 Architecture
 
-## 📋 Prerequisites
+```mermaid
+flowchart LR
+    User([User / AI Assistant])
+    UI[Next.js + Tailwind UI]
+    API[FastAPI + FastMCP Server<br/>SSE transport]
 
-### Software Requirements
-- **Backend:**
-  - Python 3.8+ (for local development)
-  - Docker and Docker Compose (for containerization)
-- **Frontend:**
-  - Node.js (version 14 or later recommended)
-  - npm or yarn
+    subgraph Automation[Meeting Automation]
+      Selenium[Selenium + Edge WebDriver]
+      Xvfb[Xvfb virtual display]
+      Pulse[PulseAudio virtual sink]
+    end
 
-### API Keys & Credentials
-- **Google Account**: Valid Gmail credentials for meeting access
-- **Deepgram API Key**: For real-time transcription services
-- **OpenAI API Key**: For AI-powered querying functionality
+    DG[Deepgram<br/>real-time STT + diarization]
+    GX[(GroundX<br/>RAG knowledge base)]
+    OAI[OpenAI GPT-4o<br/>structured outputs]
 
-## 🛠️ Installation
+    User --> UI
+    User -. MCP tools .-> API
+    UI -->|HTTP| API
 
-### Backend Installation
+    API --> Selenium
+    Selenium --> Xvfb
+    Selenium --> Pulse
+    Pulse -->|WebSocket stream| DG
+    DG -->|live transcript| API
 
-#### Docker Deployment (Backend)
-1. Navigate to the `backend` directory:
-   ```bash
-   cd backend
-   ```
-2. Create an environment file if needed (e.g., copy from an example):
-   ```bash
-   cp .env.example .env
-   ```
-3. Build and run with Docker Compose:
-   ```bash
-   docker-compose up --build
-   ```
-
-#### Local Development Setup (Backend)
-1. Install Python dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Ensure you have the required drivers and system dependencies for Google Meet automation.
-3. Run the following modules as needed:
-   - **MCP Server:**
-     ```bash
-     python server.py
-     ```
-   - **Meeting Automation:**
-     ```bash
-     python script.py
-     ```
-   - **Real-time Transcription:**
-     ```bash
-     python realtime_stream.py
-     ```
-
-### Frontend Installation
-
-The frontend is a Next.js application located in the `frontend` directory.
-
-1. Navigate to the `frontend` directory:
-   ```bash
-   cd frontend
-   ```
-2. Install the dependencies:
-   ```bash
-   npm install
-   ```
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
-   The application will be available at `http://localhost:3000`.
-4. To build for production:
-   ```bash
-   npm run build
-   ```
-5. To start the production server:
-   ```bash
-   npm run start
-   ```
-6. To run lint checks:
-   ```bash
-   npm run lint
-   ```
-
-## 🚀 Usage
-
-### Quick Start with Docker
-
-1. **Backend:**
-   - cd backend
-   - From the `backend` directory, run:
-     ```bash
-     docker-compose up
-     ```
-   This will start the MCP server, meeting automation, and transcription services.
-2. **Frontend:**
-   - In a separate terminal, from the `frontend` directory, run:
-     ```bash
-     npm run dev
-     ```
-   The frontend interface will be available at `http://localhost:3000`.
-
-
-### Available MCP Tools
-
-The system provides the following MCP tools (accessible via the MCP server):
-
-- **`echo_tool`**: Test connectivity and server status
-- **`join_google_meet_tool`**: Automate Google Meet joining process
-- **`transcribe_google_meet_tool`**: Full meeting transcription with real-time processing
-- **`ingest_document`**: insert the meeting transcript as knowledge base into the RAG
-- **`search_doc_for_rag_context`**: Query the meeting transcript for context
-
-
-### Example Queries
-
-Once the MCP server is running on the backend, you can input thee following on the running frontend localhost:3000:
-```
-"Join the meeting at https://meet.google.com/abc-defg-hij"
-"Start transcribing the current meeting for 2 hours"
-"What were the main discussion points from the last meeting?"
-"Show me all action items mentioned in today's meeting"
+    API -->|ingest| GX
+    API -->|retrieve context| GX
+    GX --> OAI
+    OAI -->|summary + action items| API
+    API --> UI
 ```
 
+**What happens end to end:**
 
-With this setup, MeetScript AI provides both a robust backend for meeting automation, transcription, and AI querying, as well as a modern Next.js frontend interface—integrating all components into a comprehensive meeting solution.
-``` 
+1. User supplies a Meet URL and API keys through the Next.js UI (or an MCP client).
+2. FastMCP server spins up a Selenium-driven Edge browser inside a headless Xvfb display.
+3. Meeting audio is routed through a PulseAudio virtual sink and streamed to Deepgram over WebSockets.
+4. Transcripts land in `transcript.txt` in real time and are ingested into GroundX as a searchable knowledge base.
+5. Queries hit the `search_doc_for_rag_context` MCP tool, which retrieves relevant chunks and passes them to GPT-4o with a Pydantic response schema to return structured summaries and action items.
+
+---
+
+## ✨ Features
+
+- **Headless Google Meet agent** — Selenium + Edge WebDriver running inside Xvfb, with persistent browser profiles so 2FA only happens once.
+- **Real-time transcription** — Deepgram streaming API with speaker diarization and live subtitle output (VTT/SRT supported).
+- **RAG on meeting transcripts** — GroundX ingestion and semantic retrieval, scoped per meeting.
+- **Structured summaries** — OpenAI GPT-4o structured outputs return a typed `MeetingTranscriptResponse` with summary, action items, assignees, and deadlines.
+- **MCP-native** — every capability is exposed as an MCP tool over SSE, so Claude Desktop, Cursor, or any MCP client can drive it directly.
+- **Fully containerized** — Docker Compose brings up the browser, virtual display, audio stack, and API server with one command.
+
+---
+
+## 🧰 Tech Stack
+
+**Backend:** Python 3.10, FastAPI, FastMCP, Selenium, Deepgram SDK, GroundX, OpenAI SDK, PyAudio
+**Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS
+**Infra:** Docker, Docker Compose, Xvfb, PulseAudio, Microsoft Edge + msedgedriver
+
+---
+
+## 🔧 MCP Tools Exposed
+
+| Tool | Purpose |
+|---|---|
+| `echo_tool` | Health check / connectivity test |
+| `transcribe_google_meet_tool` | Join a Meet URL and transcribe for N seconds |
+| `ingest_document` | Push the generated transcript into the GroundX knowledge base |
+| `search_doc_for_rag_context` | Query the transcript and get a structured summary + action items |
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Docker & Docker Compose
+- API keys for: Deepgram, OpenAI, GroundX
+- A Google account available for the agent to sign in with
+
+### Run the backend
+
+```bash
+cd backend
+cp .env.example .env   # fill in GOOGLE_USERNAME, GOOGLE_PASSWORD, DEEPGRAM_API_KEY, MEET_URL
+docker-compose up --build
+```
+
+The FastAPI + FastMCP server starts on `http://localhost:8000` and exposes SSE at `/sse`.
+
+### Run the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`, drop in your Meet URL and API keys, and click **Join Meeting & Extract Transcript**.
+
+### Drive it from an MCP client
+
+Point any MCP client at `http://localhost:8000/sse`:
+
+```
+"Join the meeting at https://meet.google.com/abc-defg-hij and transcribe for 30 minutes"
+"What were the main discussion points and who was assigned what?"
+"List every action item with its deadline"
+```
+
+---
+
+## 📁 Project Structure
+
+```
+MeetScript/
+├── backend/
+│   ├── server.py            # FastAPI + FastMCP server, MCP tool definitions
+│   ├── script.py            # Selenium Google Meet automation
+│   ├── realtime_stream.py   # Deepgram WebSocket streaming + VTT/SRT output
+│   ├── Dockerfile           # Python + Edge + Xvfb + PulseAudio
+│   ├── docker-compose.yaml
+│   └── entrypoint.sh        # Boots Xvfb, PulseAudio, then server.py
+├── frontend/                # Next.js 15 + Tailwind UI
+└── client.py                # Reference MCP + OpenAI client (SSE)
+```
+
+---
+
+## 🗺 Roadmap
+
+- [ ] Multi-meeting concurrency (one container per meeting)
+- [ ] Zoom and Teams adapters (same MCP surface)
+- [ ] Per-meeting GroundX buckets so transcripts don't collide
+- [ ] Webhook notifications on meeting end with signed summary URL
+- [ ] Streaming action-item extraction during the call, not just after
+
+---
+
+## 📝 License
+
+MIT
+
+---
+
+Built by [Akinropo Olabisi](https://github.com/Vinci-virtuoso) — Voice AI Engineer working on production LLM systems, conversational AI, and agentic workflows.
