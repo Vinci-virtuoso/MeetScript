@@ -1,0 +1,90 @@
+{
+  // rent-split-kit: the platform-kit branch of rent-split. NEVER name this Worker `rent-split`.
+  // Top level = local dev and tests (wrangler dev, astro dev, vitest). The `preview` and
+  // `production` envs are the two deploy targets; non-inheritable keys (vars, d1, kv, services,
+  // analytics datasets, ratelimits) are repeated in each env on purpose: wrangler does not merge them.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rent-split-kit",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  "vars": {
+    "APP_VERSION": "0.2.0",
+    "APP_ORIGIN": "http://127.0.0.1:8787",
+    "EMAIL_FROM": "rent-split <login@rent-split.local>",
+    "BACHS_API_URL": "https://sandbox-api.bachs.io",
+    "MAILYSEND_API_URL": "",
+    // Local only: lets the test harness read login codes from the dev mail transport (/api/dev/mail).
+    "DEV_MAIL_PEEK": "1",
+    // Local only: Bachs refuses loopback success_url values, so local checkouts point back at the preview URL.
+    "BACHS_RETURN_ORIGIN": "https://rent-split-kit-preview.tropos.workers.dev"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "rent-split-kit-preview",
+      "database_id": "595d9ff6-8738-4a22-b86f-3e9730b1ec29",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "kv_namespaces": [{ "binding": "AUTH_KV", "id": "265e102fe437483eb50bae3a2247d649" }],
+  "analytics_engine_datasets": [{ "binding": "EVENTS", "dataset": "rent_split_kit_events" }],
+  "ratelimits": [
+    { "name": "RATE_LIMITER", "namespace_id": "2001", "simple": { "limit": 60, "period": 60 } },
+    { "name": "AUTH_RATE_LIMITER", "namespace_id": "2002", "simple": { "limit": 10, "period": 60 } }
+  ],
+  "env": {
+    "preview": {
+      "name": "rent-split-kit-preview",
+      "observability": { "enabled": true, "head_sampling_rate": 1 },
+      "vars": {
+        "APP_VERSION": "0.2.0",
+        "APP_ORIGIN": "https://rent-split-kit-preview.tropos.workers.dev",
+        "EMAIL_FROM": "Rent Split <noreply@mail.divineweb.co>",
+        "BACHS_API_URL": "https://sandbox-api.bachs.io",
+        "MAILYSEND_API_URL": "https://sei-mailysend.tropos.workers.dev"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "rent-split-kit-preview",
+          "database_id": "595d9ff6-8738-4a22-b86f-3e9730b1ec29",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "AUTH_KV", "id": "265e102fe437483eb50bae3a2247d649" }],
+      "analytics_engine_datasets": [{ "binding": "EVENTS", "dataset": "rent_split_kit_events" }],
+      "ratelimits": [
+        { "name": "RATE_LIMITER", "namespace_id": "2001", "simple": { "limit": 60, "period": 60 } },
+        { "name": "AUTH_RATE_LIMITER", "namespace_id": "2002", "simple": { "limit": 10, "period": 60 } }
+      ],
+      "services": [{ "binding": "MAILYSEND", "service": "sei-mailysend" }]
+    },
+    "production": {
+      "name": "rent-split-kit",
+      "observability": { "enabled": true, "head_sampling_rate": 1 },
+      "vars": {
+        "APP_VERSION": "0.2.0",
+        "APP_ORIGIN": "https://rent-split-kit.tropos.workers.dev",
+        "EMAIL_FROM": "Rent Split <noreply@mail.divineweb.co>",
+        "BACHS_API_URL": "https://sandbox-api.bachs.io",
+        "MAILYSEND_API_URL": "https://sei-mailysend.tropos.workers.dev"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "rent-split-kit",
+          "database_id": "89e80fdc-047d-444d-a258-1cb993a73179",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "AUTH_KV", "id": "c2d633816d284ba2b19a29c9bc32bb9d" }],
+      "analytics_engine_datasets": [{ "binding": "EVENTS", "dataset": "rent_split_kit_events" }],
+      "ratelimits": [
+        { "name": "RATE_LIMITER", "namespace_id": "2001", "simple": { "limit": 60, "period": 60 } },
+        { "name": "AUTH_RATE_LIMITER", "namespace_id": "2002", "simple": { "limit": 10, "period": 60 } }
+      ],
+      "services": [{ "binding": "MAILYSEND", "service": "sei-mailysend" }]
+    }
+  }
+}

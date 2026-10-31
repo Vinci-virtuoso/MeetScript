@@ -1,0 +1,12 @@
+.spec/afk-runs/
+.spec/factory-*.status
+.spec/review-url-*
+node_modules/
+.wrangler/
+.astro/
+dist/
+test-results/
+playwright-report/
+.dev.vars
+.dev.vars.*
+worker-configuration.d.ts

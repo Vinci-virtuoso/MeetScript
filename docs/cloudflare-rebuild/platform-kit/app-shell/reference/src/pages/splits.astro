@@ -1,0 +1,13 @@
+---
+import App from "../layouts/App.astro";
+import { SplitsList } from "../components/SplitsList";
+import { ErrorBoundary } from "../components/ErrorBoundary";
+---
+
+<App title="Saved splits" description="Your saved rent splits." current="splits">
+  <div class="py-4 md:py-8">
+    <ErrorBoundary component="SplitsList" client:load>
+      <SplitsList client:load />
+    </ErrorBoundary>
+  </div>
+</App>
