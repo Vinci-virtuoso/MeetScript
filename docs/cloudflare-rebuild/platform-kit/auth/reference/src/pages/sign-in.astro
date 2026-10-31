@@ -1,0 +1,17 @@
+---
+import App from "../layouts/App.astro";
+import { SignIn } from "../components/SignIn";
+import { ErrorBoundary } from "../components/ErrorBoundary";
+import { githubConfigured } from "../server/auth/login";
+import { env } from "cloudflare:workers";
+
+const githubEnabled = githubConfigured(env as unknown as Env);
+---
+
+<App title="Sign in" description="Sign in to rent-split with an email code or GitHub.">
+  <div class="py-6 md:py-12">
+    <ErrorBoundary component="SignIn" client:load>
+      <SignIn client:load githubEnabled={githubEnabled} />
+    </ErrorBoundary>
+  </div>
+</App>

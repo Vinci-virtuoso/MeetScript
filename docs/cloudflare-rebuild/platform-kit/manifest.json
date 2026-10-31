@@ -1,0 +1,542 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "34679a4fbb4181ed34f02ce0d8b032dffe60cae6498c77d9bc6a4bc68121c0dd"
+  },
+  {
+    "path": "api/SKILL.md",
+    "sha256": "c7edfbd42b3aa539b644a109a952804244a44f93a7232a6359b8c7fc4ee9b81e"
+  },
+  {
+    "path": "api/check.sh",
+    "sha256": "11ea7a26f079977b42e82a5288a066a5f0746abcd367f52760de82c0e84ec850"
+  },
+  {
+    "path": "api/reference/src/lib/api.ts",
+    "sha256": "b85a0613e8a490ffefe9a7532095c6a9a5f2ecb5ecc83247b5664298f27dc6d4"
+  },
+  {
+    "path": "api/reference/src/schemas/client-error.ts",
+    "sha256": "f1df7992bcb36bcc9459cd661d8571695dca680c686644e90762157c93a41399"
+  },
+  {
+    "path": "api/reference/src/schemas/index.ts",
+    "sha256": "78049d5ab5e111306a6b6fe3314dae765cd1e970f1f4bfc79e199d4c51f4c92d"
+  },
+  {
+    "path": "api/reference/src/schemas/split.ts",
+    "sha256": "054af12fcdedcfaf33e0b75b5939cbf18a0284c83056d91598c55b81baf27699"
+  },
+  {
+    "path": "api/reference/src/server/middleware/cors.ts",
+    "sha256": "90c8ad3e5961f4f588ea97730a4a90115645ad47e940d78ae5ff06db7f3c0c26"
+  },
+  {
+    "path": "api/reference/src/server/middleware/origin.ts",
+    "sha256": "9f9cc67a607d146165dc6e03a4d76613966c59f675690acbd799aa6b93cead8b"
+  },
+  {
+    "path": "api/reference/src/server/openapi.ts",
+    "sha256": "557cca6f976d9a8a2e28a9ffbebfcfd61a193b0ae1eaa008eb823099b9643811"
+  },
+  {
+    "path": "api/reference/src/server/routes/me.ts",
+    "sha256": "d3448839ceb2e02c3253066284df2285d84034a07584fd54d86a2503cee1b812"
+  },
+  {
+    "path": "api/reference/src/server/routes/splits.ts",
+    "sha256": "8250e5b3a7d11929277d1ea9b86474f5a44f933bc6db57d5777ae01f060f7ea9"
+  },
+  {
+    "path": "api/reference/src/server/routes/system.ts",
+    "sha256": "336d1e217f08d10fb6d04c88a1eff4da806e8f6b70126382c996e890399e3892"
+  },
+  {
+    "path": "api/reference/src/server/validate.ts",
+    "sha256": "ca6e2572ee9f648ec5349493c345ce9af6ce0c4fc2a2e774bed031fff90a0aae"
+  },
+  {
+    "path": "api/reference/tests/worker/api.test.ts",
+    "sha256": "ccf9040c54d6eb89166147e5a638d70dd7cbf01303871898ced1b639f2b321e9"
+  },
+  {
+    "path": "api/tickets/003-api.md",
+    "sha256": "2ce6816c1ad9119ca3c188d0c96f9d3d9db4b7933940c4213e41836b4bca6d79"
+  },
+  {
+    "path": "app-shell/SKILL.md",
+    "sha256": "a7fe31627f89fd7dac53981d018a906f71cf32e1ee0aaafec5139e6d567acc6c"
+  },
+  {
+    "path": "app-shell/check.sh",
+    "sha256": "4b76935a068e7f421f6d6c629e11f6f257bf5260630fbe3d82f78f27867d0ff1"
+  },
+  {
+    "path": "app-shell/reference/src/components/AccountMenu.tsx",
+    "sha256": "7cb4d2a57f537a0f8d42f100747efbb7f4b4678ee80c10dcb22864cba895ac8a"
+  },
+  {
+    "path": "app-shell/reference/src/layouts/App.astro",
+    "sha256": "0b4ed60257d69c5d8664a0c1e1f29ca82c355b264cce1d9ff87b42d7adec0d31"
+  },
+  {
+    "path": "app-shell/reference/src/layouts/Base.astro",
+    "sha256": "ef8b856f3ffbe8db3d42f7a55bb94f6f879c26b871f2cbfb59f31277f0fbfe98"
+  },
+  {
+    "path": "app-shell/reference/src/pages/splits.astro",
+    "sha256": "714350ca7fdc789366dd8e26589f217d1d9be1bb3eb97205d1da57a8ad768ca4"
+  },
+  {
+    "path": "app-shell/reference/src/scripts/account.ts",
+    "sha256": "d1a8eb13090a50fab664e50a8add47b14413b2cf15162bed6d68b2db27ce80f9"
+  },
+  {
+    "path": "app-shell/tickets/012-app-shell.md",
+    "sha256": "d3302834d9c75cc99f9d1f86899c644e46a45001698e2ccdab155defe1bf1d55"
+  },
+  {
+    "path": "app-shell/tickets/013-marketing-pages.md",
+    "sha256": "b94f900d55132ef071b5e0cd4e7b02f647c6c268347c9dcd56e335c4c2b23a0f"
+  },
+  {
+    "path": "app-shell/tickets/014-home-account.md",
+    "sha256": "6d1b49c57305cae8ce8f1957869fdb9f7353aaa420728071d9770ef863b2be47"
+  },
+  {
+    "path": "auth/SKILL.md",
+    "sha256": "c026c58e8fec0a164dd2334eb07144c1bfa17a6b8c7c9f08e1251398d91ab40e"
+  },
+  {
+    "path": "auth/additions/src/server/auth/google.ts",
+    "sha256": "03cb60e024f5b754d5dd504a1b6b11f468112636215f04896a4eeaf9698f2988"
+  },
+  {
+    "path": "auth/additions/tests/worker/google.test.ts",
+    "sha256": "26523ef133eb0ed50e6312f990509e256bb9b2ed8586ba673cf5a62c82ba45a5"
+  },
+  {
+    "path": "auth/check.sh",
+    "sha256": "8b1522bc87bd9987d1515a90768f535bbeef9f1c57958d34a3338097a7c749bb"
+  },
+  {
+    "path": "auth/reference/src/components/AccountMenu.tsx",
+    "sha256": "7cb4d2a57f537a0f8d42f100747efbb7f4b4678ee80c10dcb22864cba895ac8a"
+  },
+  {
+    "path": "auth/reference/src/components/SignIn.tsx",
+    "sha256": "538f75cb505bba8acd5433fe2989e5328615dc649e09c3ce1053490440b02704"
+  },
+  {
+    "path": "auth/reference/src/lib/auth-client.ts",
+    "sha256": "eb06d125548ee4574f08b6c09236856068a00439a344ebc9b1602ba1a9894589"
+  },
+  {
+    "path": "auth/reference/src/pages/sign-in.astro",
+    "sha256": "fedaa096e61f851fd030f0c1cde56d075ac8f57fcfd5d3de03bf73135dc299f7"
+  },
+  {
+    "path": "auth/reference/src/schemas/auth.ts",
+    "sha256": "8b63f9138a18220d004df8cb8f09e8154cf23b20b317ab44a3a2a9e821cb85a0"
+  },
+  {
+    "path": "auth/reference/src/scripts/account.ts",
+    "sha256": "d1a8eb13090a50fab664e50a8add47b14413b2cf15162bed6d68b2db27ce80f9"
+  },
+  {
+    "path": "auth/reference/src/server/auth/login.ts",
+    "sha256": "28181ecadfcd109eb7f4f1e882c01822ea53a450bc49268a1741caa4b1173c25"
+  },
+  {
+    "path": "auth/reference/src/server/auth/rate-limit.ts",
+    "sha256": "68ca263af71b19c5c34ade77f75cfe5eacd6abb0313208a34ce3cb159f85a787"
+  },
+  {
+    "path": "auth/reference/src/server/auth/require-user.ts",
+    "sha256": "912e105caeaa5e6214f043c5c0cafa124212c38efc8bd50104af5da38a60a52a"
+  },
+  {
+    "path": "auth/reference/src/server/auth/web.ts",
+    "sha256": "5f98ec9b1232a1ad221df7988fd40abaa2926b3f07a3c239fea95193e9eefd25"
+  },
+  {
+    "path": "auth/reference/src/server/client-ip.ts",
+    "sha256": "7406435ba8c38bf9556ad456aa8353781c8ba658ea47b5fe4af30301347967ce"
+  },
+  {
+    "path": "auth/reference/tests/e2e/kit-helpers.ts",
+    "sha256": "2e80349ab19523dd5b45daa7061eb06b3c55688622e5279c4c6ba4efc394e073"
+  },
+  {
+    "path": "auth/reference/tests/worker/auth.test.ts",
+    "sha256": "940c3d154a154c9434ee2bc6e51f4d76d6fa68115c28867f289f8012348b89a7"
+  },
+  {
+    "path": "auth/tickets/005-auth.md",
+    "sha256": "9afd0b92c8563591c6248009f44f6794e80b4d6730b1f970a2108d9b9d047c8e"
+  },
+  {
+    "path": "auth/tickets/006-auth-screens.md",
+    "sha256": "9a13d6b8247705d5fb32e603b40196111638333932122acd243d7534bf8c6f52"
+  },
+  {
+    "path": "authz/SKILL.md",
+    "sha256": "6322345a37bb96e7ec5ad7264a969004068d44ff55d08114ed53accb77e94530"
+  },
+  {
+    "path": "authz/check.sh",
+    "sha256": "325f3a9abb706c151a75c71f5bcb4f1c0f8866a109b6f2d14cd7da8211255125"
+  },
+  {
+    "path": "authz/reference/src/policy/can.test.ts",
+    "sha256": "41aa9fb6244c679e115499efe49320b18f2f0e14f1c80263eb283fd8bb1e2d3d"
+  },
+  {
+    "path": "authz/reference/src/policy/can.ts",
+    "sha256": "484be352b8606b8b0da6ca98cef59ebbdfcc51e5a210f2ab1d3626cb56b59f1d"
+  },
+  {
+    "path": "authz/tickets/007-authz.md",
+    "sha256": "271c0225b084b0a27ccab8003ec8357c453196ce430ab6581529da72872318ed"
+  },
+  {
+    "path": "db/SKILL.md",
+    "sha256": "9244ad1ac7741ff8e7bd3ab85a3256eff399621420a170687f071f9bd8a2a225"
+  },
+  {
+    "path": "db/check.sh",
+    "sha256": "9fa2f41be75e5774b1bf0380205ed8cecd9b328c8dab8f1528cb9df67ea89b34"
+  },
+  {
+    "path": "db/reference/migrations/0001_users.sql",
+    "sha256": "ea2c0641f69ead3eb7c19309e38b036bf315774c1d72926b97445d6c0599ae9d"
+  },
+  {
+    "path": "db/reference/migrations/0002_splits.sql",
+    "sha256": "5875646a861cf6e22743578223a7c6a3cfbff00e8e03e4d90565343fcd3d2596"
+  },
+  {
+    "path": "db/reference/migrations/0003_loginbase_sessions.sql",
+    "sha256": "6ff054224ce91b07d3b6a9161f32f570a548d07df110a920ea1c634b0fb06060"
+  },
+  {
+    "path": "db/reference/migrations/0004_loginbase_auth_events.sql",
+    "sha256": "33bd4c28f0d4c6687e89e5203a86bd72bf90faa8e4dd2b668ec583ff128d8df7"
+  },
+  {
+    "path": "db/reference/migrations/0005_loginbase_auth_events_client.sql",
+    "sha256": "7fcb4f30bbbc6745f9e0533cbae745b684526dc11f5d44debec9d29c0e1558bc"
+  },
+  {
+    "path": "db/reference/migrations/0006_eventbase_events.sql",
+    "sha256": "c4f1ac3710c6e526bd84bd847d801f1e8a9c5664c9f4a515bbba5cb1600532f4"
+  },
+  {
+    "path": "db/reference/migrations/0007_eventbase_install_locale.sql",
+    "sha256": "8185ea22f05e97abdef9e8f583e4b158cd5e5754e7e33e61a472e19d924bf9d2"
+  },
+  {
+    "path": "db/reference/migrations/0008_eventbase_ingest_drops.sql",
+    "sha256": "9e2a05d360087fcc2a6fcb8dedeba889c855f09510d12df6d9168139729ccc07"
+  },
+  {
+    "path": "db/reference/migrations/0009_eventbase_event_id.sql",
+    "sha256": "ac7d5f71cc73659185ca536f2b453ab9ceb974ead262529e4715eaf7833d0176"
+  },
+  {
+    "path": "db/reference/migrations/0010_eventbase_device_id.sql",
+    "sha256": "ac48d41950d114926b42d27050be12d3a7f778f10e8476acf583e56359e528f4"
+  },
+  {
+    "path": "db/reference/migrations/0011_eventbase_geo_city.sql",
+    "sha256": "61dfa2faef859b9bc0df6781e5a130fee51622e5e98d95aa6c3a5d5b5f016d3d"
+  },
+  {
+    "path": "db/reference/migrations/0012_eventbase_geo_region.sql",
+    "sha256": "6a455251af6fbc1706ef0b4269e59d844fca8cdc877c74dcb7ca82be7175cbe3"
+  },
+  {
+    "path": "db/reference/migrations/0013_eventbase_dedupe_events.sql",
+    "sha256": "857757778043776411f13b47bf0f36c6e8f39c60777f1a2002c2b43a0d28a517"
+  },
+  {
+    "path": "db/reference/migrations/0014_eventbase_event_id_unique.sql",
+    "sha256": "0b3e9703cbb4d56f54ac2fad8031fa677ee5630beab2e46056f0bfc91c9f4a26"
+  },
+  {
+    "path": "db/reference/src/db/ids.ts",
+    "sha256": "73366d1e41dfc41486f9dda1c4a7b40a8b4048f52e7d0d05cf0593405333376d"
+  },
+  {
+    "path": "db/reference/src/db/index.ts",
+    "sha256": "158f9fcb20902d4bfa2b7f0d28a826d98b9dc645019bd9017efeb9d0155fc967"
+  },
+  {
+    "path": "db/reference/src/db/splits.ts",
+    "sha256": "a5f66e58341c80b3708a5a380e53bf76632c4db5839a7868b891f1030da4eedd"
+  },
+  {
+    "path": "db/reference/src/db/users.ts",
+    "sha256": "8e4a100110866d7394b7e243aa7784961055879b282c4a4172f14e59a0ed1508"
+  },
+  {
+    "path": "db/reference/tests/worker/db.test.ts",
+    "sha256": "326154eeb2061bcdac14d12e26d9a2629c91e52e18a948429da53a43900bc24e"
+  },
+  {
+    "path": "db/tickets/002-db.md",
+    "sha256": "24a3f1f712e1e5ea792d22ec18d42dd8dac392d02b672cc37c92f6a23169a5be"
+  },
+  {
+    "path": "deploy/SKILL.md",
+    "sha256": "a35b53e5a3f7e2cebce61aafbd05448e5c19f6d232d6b24af1a5e798ce455c90"
+  },
+  {
+    "path": "deploy/check.sh",
+    "sha256": "8c878fb4fbd86193739c3b0701bc92bac71235675ac3ffd695dc1376aeb64d71"
+  },
+  {
+    "path": "deploy/reference/scripts/deploy.sh",
+    "sha256": "a18b228f5acd7fcc89ed0262f9e3f25983b514148fbc458b0ecfde8d0a3dc805"
+  },
+  {
+    "path": "deploy/reference/wrangler.jsonc",
+    "sha256": "0d5b775a689a90b498a0ecd46e58c3fe8b65ca1885a146330b1c86582681d0dc"
+  },
+  {
+    "path": "deploy/tickets/011-deploy.md",
+    "sha256": "dd3efbee95953add126b239214b6392cdb5802f36ad949a53d470b60e37109b0"
+  },
+  {
+    "path": "email/SKILL.md",
+    "sha256": "cc5f722fe92f3260f12a2ac278c4edee7239ca8ff8c4cae3894e5373e7467703"
+  },
+  {
+    "path": "email/check.sh",
+    "sha256": "5480b1aad61a0d191178675af53c7fbc81816fb10387e85caf9ad3dcc133c5cd"
+  },
+  {
+    "path": "email/reference/src/email/dev.ts",
+    "sha256": "dacbda5fd6480762091680b3953b2c2cb0e0bf069f5bfc31bda93dee6f263177"
+  },
+  {
+    "path": "email/reference/src/email/index.test.ts",
+    "sha256": "96764989e78ccefaeaf9df9cd0a7ca8983cfcb24ebb1e64c210725ba19a9a2d9"
+  },
+  {
+    "path": "email/reference/src/email/index.ts",
+    "sha256": "e7c25ff9976266554ae5149c122c64f22e7c931f35526dd29eaaef5e864f51e9"
+  },
+  {
+    "path": "email/reference/src/email/mailysend.test.ts",
+    "sha256": "a93d9b996ec5f264314716e42ad51876cff48cf9ff8e06d837f8260ca06256c7"
+  },
+  {
+    "path": "email/reference/src/email/mailysend.ts",
+    "sha256": "bef1609fb32ba1ad95e41a4ab839c18b61d30be9665334bcf067b4e50fab6065"
+  },
+  {
+    "path": "email/reference/src/email/provider.ts",
+    "sha256": "86a32d061172b5141abedb525413788b9a9189bbd4d7c1f963d92af04398bec7"
+  },
+  {
+    "path": "email/reference/src/email/resend.ts",
+    "sha256": "5c08848969a0a4a62a38b4b68e772482302d277346346ce0913ec932a304e8d5"
+  },
+  {
+    "path": "email/reference/src/server/routes/dev.ts",
+    "sha256": "ead911b111c5cb3bb6e9b0d589cb1792bbc2105ba2d6ed2763a701651599a9aa"
+  },
+  {
+    "path": "email/tickets/010-email.md",
+    "sha256": "e626895ca2b51033b75d24ef440465e81881b466236a90dac681262d797e3d61"
+  },
+  {
+    "path": "frontend/SKILL.md",
+    "sha256": "9b7f1b2559401cbe0ec02601dd894c9247c84df762d91e2f4e64ab95888fd8c3"
+  },
+  {
+    "path": "frontend/check.sh",
+    "sha256": "6b944a6ba552e2098a2694dc997d7b686e9cc1e5f8a2d70038ec0f189418305e"
+  },
+  {
+    "path": "frontend/reference/components.json",
+    "sha256": "fa0dac70b33b4367fc197bb2f84da5ac960f52cac3f4ca9e884c1038d6157f01"
+  },
+  {
+    "path": "frontend/reference/src/components/ErrorBoundary.tsx",
+    "sha256": "1cbef81cae68be1c1f83efc18853ac653bddfe8b4b69b2f15fed671dab1f9b97"
+  },
+  {
+    "path": "frontend/reference/src/components/ui/alert.tsx",
+    "sha256": "f253568242c1c69b343f12474002fdbe229f603158171c59e21c491ab79f2e6e"
+  },
+  {
+    "path": "frontend/reference/src/components/ui/badge.tsx",
+    "sha256": "d9fb280e266119c4b62a4c518e63152de27b094c68d3e5f8929d05bfb0c1bc6c"
+  },
+  {
+    "path": "frontend/reference/src/components/ui/button.tsx",
+    "sha256": "e803882d82755ac569fffb61a207053bdc821421a3bda2c19f967f14caab11ad"
+  },
+  {
+    "path": "frontend/reference/src/components/ui/card.tsx",
+    "sha256": "8ad3a18d36bda0598dc0e9aa96ea22854944d5443ee4946f1d173815e115375f"
+  },
+  {
+    "path": "frontend/reference/src/components/ui/empty.tsx",
+    "sha256": "1280f9207787f9e7c219f7181459387b5e103606b6d91872de33a7a9752ee7a7"
+  },
+  {
+    "path": "frontend/reference/src/components/ui/field.tsx",
+    "sha256": "8e54d2838051eeb741f6925863b690c98928b25bbb26f3cd26a5b75121d06acb"
+  },
+  {
+    "path": "frontend/reference/src/components/ui/input.tsx",
+    "sha256": "d8231668940ec6ad13ebb32500f307137385aa5e8c101fad17e564334b9aada4"
+  },
+  {
+    "path": "frontend/reference/src/components/ui/label.tsx",
+    "sha256": "86232709f634da7f357a8aaec0e815f3f562604bb67202c88997fae97659b450"
+  },
+  {
+    "path": "frontend/reference/src/components/ui/separator.tsx",
+    "sha256": "9a80ff8c110e0c55489509f4f82ebcc929c0174b59544047147b7134f86a54e7"
+  },
+  {
+    "path": "frontend/reference/src/components/ui/skeleton.tsx",
+    "sha256": "4c2af7fa9c645358a0fb188779deab6f0b981733b62befc25e18aaebea1350dc"
+  },
+  {
+    "path": "frontend/reference/src/components/ui/spinner.tsx",
+    "sha256": "6916679a40ad1c7624520de5eaa7b337635e81f9a76413201267f8619844646f"
+  },
+  {
+    "path": "frontend/reference/src/layouts/App.astro",
+    "sha256": "0b4ed60257d69c5d8664a0c1e1f29ca82c355b264cce1d9ff87b42d7adec0d31"
+  },
+  {
+    "path": "frontend/reference/src/lib/format.ts",
+    "sha256": "65c720b423260ae9d1b2edba090386ed86eb93ba947d4b13ee1be2bd671a59e3"
+  },
+  {
+    "path": "frontend/reference/src/lib/report-error.ts",
+    "sha256": "2ed464488f3a05dee538179d48e3cf035252c834b007db3f1109145f1ddec906"
+  },
+  {
+    "path": "frontend/reference/src/lib/utils.ts",
+    "sha256": "14300d758170c270c75b057f38fedb3793a5920ea872f0477e29fb131185e8a7"
+  },
+  {
+    "path": "frontend/reference/src/styles/font.css",
+    "sha256": "3e8be8631b917fb84d433acaea64923ecbcca5625b0208137f2e69cd814354f9"
+  },
+  {
+    "path": "frontend/reference/src/styles/global.css",
+    "sha256": "163a6f493d309881f357547170918c91b647058825fecfeea1d78eb6e76bd29d"
+  },
+  {
+    "path": "frontend/reference/tests/e2e/kit-screens.spec.ts",
+    "sha256": "d837e38371d0d0f548789751f1d43c4ba878ea8da4efa27651c9a22c3f94cb35"
+  },
+  {
+    "path": "frontend/tickets/004-frontend.md",
+    "sha256": "a088453d9893fb9198b9e8ec058dc230c78e3ba3da535861a997c3f83e7213d3"
+  },
+  {
+    "path": "scaffold/SKILL.md",
+    "sha256": "00922f56110283c8f353facc79024b49caf31641ec655352223832c2649dd7ac"
+  },
+  {
+    "path": "scaffold/check.sh",
+    "sha256": "0e3c71b40fb58662c05eb7ad32468312f6fe2647faae8e012e8da1d48636aa5c"
+  },
+  {
+    "path": "scaffold/reference/.gitignore",
+    "sha256": "6563de3bdc3b0a581d182bf139666270630fe446d38a3b5279e1e6431262baab"
+  },
+  {
+    "path": "scaffold/reference/astro.config.mjs",
+    "sha256": "4a80efb324e428a1d5f57c2868d2c975d7c398bb558ec66e6106127b31a837e4"
+  },
+  {
+    "path": "scaffold/reference/package.json",
+    "sha256": "176002f8b34e412d96fb72170b6edbb76135ebaa4657e13dcde3ed94c721d303"
+  },
+  {
+    "path": "scaffold/reference/playwright.config.js",
+    "sha256": "a9a3e965b786e6ad8c9a0cee62a46073281c7be6d81f8ee29eb29d02cfe6dd77"
+  },
+  {
+    "path": "scaffold/reference/scripts/write-dev-vars.mjs",
+    "sha256": "9f9c528aa55e32ca9d283c093d28775a384ffb0b1cbf7538989ca1e612a76265"
+  },
+  {
+    "path": "scaffold/reference/src/env.d.ts",
+    "sha256": "1b4ed4ad5b03f0d652443e3795fd52680299ea228838d734d8fb610b4289086d"
+  },
+  {
+    "path": "scaffold/reference/src/fetch.ts",
+    "sha256": "5ecd058e41ad7b682332825f025b11631ea496b1c3407a6d3c1af88ec336d859"
+  },
+  {
+    "path": "scaffold/reference/src/layouts/Base.astro",
+    "sha256": "ef8b856f3ffbe8db3d42f7a55bb94f6f879c26b871f2cbfb59f31277f0fbfe98"
+  },
+  {
+    "path": "scaffold/reference/src/server/app.ts",
+    "sha256": "d0e4bf3f9e01d43daa158a022e8f033e4bf062b3ca85f4a50b10d9e29e2f3212"
+  },
+  {
+    "path": "scaffold/reference/src/server/context.ts",
+    "sha256": "037d8c14c9b354cc73ed97263f70da5b620c1fbffcb032d3090c52c3fd9d234c"
+  },
+  {
+    "path": "scaffold/reference/src/server/http.ts",
+    "sha256": "e4774912b2fa4a7db7b503dc549cffa9cf7e263c650574b597ad6b51f10f48aa"
+  },
+  {
+    "path": "scaffold/reference/src/server/log.ts",
+    "sha256": "3689e82d764c847bb9e2b2909f135d9ed3a72790ee9a69fd59dc52bb3afa9883"
+  },
+  {
+    "path": "scaffold/reference/src/server/middleware/request.ts",
+    "sha256": "613e70693371b32e1688823afca63f104b3c9694b29f350d20db9ecbf566f83a"
+  },
+  {
+    "path": "scaffold/reference/src/server/routes/health.ts",
+    "sha256": "794c8e24ce2d98d69f9cac0d4c2adcc16ccc9636aff417828b8096893c654680"
+  },
+  {
+    "path": "scaffold/reference/tests/setup.ts",
+    "sha256": "1579c0fd9d1d9a1b5b8423b3187a100341425bd71fd81f534b7c57dd288e008a"
+  },
+  {
+    "path": "scaffold/reference/tests/worker/health.test.js",
+    "sha256": "77d70eb85c441b4db0976c76ca379f064f7df773b1438973b2c855ea13b5aa02"
+  },
+  {
+    "path": "scaffold/reference/tests/worker/log.test.js",
+    "sha256": "c98f4fb1718c99fc642518152c2c59e3c6b4513e2aaf47f11ecf71a4e4483c34"
+  },
+  {
+    "path": "scaffold/reference/tsconfig.json",
+    "sha256": "184ea8a1950b8ead6a1ea998f0e470595c8d103e2c56d02399af11490083a182"
+  },
+  {
+    "path": "scaffold/reference/tsconfig.web.json",
+    "sha256": "41279fd23b43a7b84e2bb387f48155d417875ed9f3cb5e7e458e7d43cbe2154d"
+  },
+  {
+    "path": "scaffold/reference/vitest.config.ts",
+    "sha256": "d3c0bacc64e7286dad888e9059565f29b9e8019ab3343a38a9d0cbfb7f00ac66"
+  },
+  {
+    "path": "scaffold/reference/wrangler.jsonc",
+    "sha256": "0d5b775a689a90b498a0ecd46e58c3fe8b65ca1885a146330b1c86582681d0dc"
+  },
+  {
+    "path": "scaffold/tickets/001-scaffold.md",
+    "sha256": "e2b7be21773a5c2f505630045c7dddd90a9c507e3c4cac902a007c8246c41268"
+  }
+]
