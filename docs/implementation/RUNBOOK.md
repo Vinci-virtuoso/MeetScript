@@ -1,5 +1,7 @@
 # Local verification and next live gate
 
+Current product scope: [personal-agent revision](../agent-infrastructure/README.md). This recovery runbook describes the foundation and G0 setup; use the revised architecture/plan for agent inboxes, scheduling, recipients and recap delivery. Those new integrations remain unimplemented.
+
 ## Local
 
 1. Use Node 22.12+ and run `npm ci` from the root.

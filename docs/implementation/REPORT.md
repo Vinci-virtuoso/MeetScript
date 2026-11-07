@@ -1,5 +1,7 @@
 # Recovery implementation report
 
+Scope update: [personal meeting agents](../agent-infrastructure/README.md) is now the implementation brief for per-user email inboxes, scheduled invitations and automatic approved recaps. The results below describe the existing foundation only; the new specification is not runtime acceptance.
+
 Date: 7 November 2026. Status: **local foundation rebuilt; full product acceptance incomplete; not deployed.**
 
 See `RECOVERY.md` for the lost-session boundary. The prior chat reported 50 tests, 11 browser tests and 108 screenshots, but that source was never pushed and was unavailable here. Those results are not carried forward.
@@ -27,19 +29,19 @@ Initial browser attempts passed several route matrices but were interrupted by d
 
 ## Requirement status (applies to this recovery only)
 
-| Requirement | Status | Evidence and remaining work |
-|---|---|---|
-| G0 / G0-R / PREVIEW / PROD | Blocked / not run | No credentials, approved test meeting or Container runner validation. Nothing deployed. |
-| JOIN / CONSENT | Partial | URL and affirmative-consent contracts tested; live dispatch deliberately unavailable. |
-| AUTH / SAFETY / TENANT | Partial | Worker tests cover the implemented session/OTP/ACL contracts; real mail, Turnstile UI, complete endpoint matrix and membership lifecycle remain. |
-| LIFE / QUOTA | Partial | Real DO concurrency and fencing tests; no Container integration, global coordinator or dispatch saga. |
-| AUDIO / STT / RAG | Not implemented | No capture/ingestion/playback/AI/Vectorize pipeline. Audio/chat APIs do not fabricate outputs. |
-| MINUTES / ACTIONS | Partial | Citation schema and action revision API tested; real draft generation, regeneration and transcript corrections pending. |
-| SEARCH | Partial | Tenant-filtered meeting title list and stable cursor implemented; full transcript search/index consistency pending. |
-| PRIVACY / OPS | Partial | Immediate tombstones and bounded conservative local cleanup; no verified live stop, vector teardown, automatic retention, restore or operational deployment. |
-| UI / A11Y | Partial | Responsive public/sample notebook, keyboard controls and automated checks; all real lifecycle/data states, screen reader and zoom audits pending. |
-| CI | Partial | Locked dependencies and standalone verify; automated hosted CI and full live integration suites pending. |
-| SCOPE | Local runtime conforms | Active runtime is custom Cloudflare-targeted code; no billing, Calendar or external capture runtime. Legacy code is archived only. |
+| Requirement                | Status                 | Evidence and remaining work                                                                                                                                  |
+| -------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| G0 / G0-R / PREVIEW / PROD | Blocked / not run      | No credentials, approved test meeting or Container runner validation. Nothing deployed.                                                                      |
+| JOIN / CONSENT             | Partial                | URL and affirmative-consent contracts tested; live dispatch deliberately unavailable.                                                                        |
+| AUTH / SAFETY / TENANT     | Partial                | Worker tests cover the implemented session/OTP/ACL contracts; real mail, Turnstile UI, complete endpoint matrix and membership lifecycle remain.             |
+| LIFE / QUOTA               | Partial                | Real DO concurrency and fencing tests; no Container integration, global coordinator or dispatch saga.                                                        |
+| AUDIO / STT / RAG          | Not implemented        | No capture/ingestion/playback/AI/Vectorize pipeline. Audio/chat APIs do not fabricate outputs.                                                               |
+| MINUTES / ACTIONS          | Partial                | Citation schema and action revision API tested; real draft generation, regeneration and transcript corrections pending.                                      |
+| SEARCH                     | Partial                | Tenant-filtered meeting title list and stable cursor implemented; full transcript search/index consistency pending.                                          |
+| PRIVACY / OPS              | Partial                | Immediate tombstones and bounded conservative local cleanup; no verified live stop, vector teardown, automatic retention, restore or operational deployment. |
+| UI / A11Y                  | Partial                | Responsive public/sample notebook, keyboard controls and automated checks; all real lifecycle/data states, screen reader and zoom audits pending.            |
+| CI                         | Partial                | Locked dependencies and standalone verify; automated hosted CI and full live integration suites pending.                                                     |
+| SCOPE                      | Local runtime conforms | Active runtime is custom Cloudflare-targeted code; no billing, Calendar or external capture runtime. Legacy code is archived only.                           |
 
 The authoritative checklist in `docs/cloudflare-rebuild` remains unchanged so its integrity manifest stays valid. No unchecked product gate is presented as complete by this report.
 
@@ -49,4 +51,4 @@ Configure Cloudflare access securely, approve a test meeting/disclosure/stop pro
 
 ## Checkpoint publication
 
-The source checkpoint is committed locally. GitHub publication was blocked by automatic approval review because exporting the newly rebuilt source to the public repository requires explicit user approval. No remote tree, branch or PR was created by the rejected operation. No deployment was attempted.
+The initial export was blocked pending explicit approval. After the owner approved publishing the source, the matching checkpoint was saved as GitHub commit `12ecbe1692975634a35561b14a0e762b362cca64` on `codex/cloudflare-rebuild-recovery` and opened as [draft PR #4](https://github.com/Vinci-virtuoso/MeetScript/pull/4). Its file tree exactly matches the local recovery checkpoint. No merge or deployment was performed. The current personal-agent specification is a subsequent documentation revision.

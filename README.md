@@ -6,6 +6,10 @@ This is the recovery rebuild of [Vinci-virtuoso/MeetScript](https://github.com/V
 
 **Status: foundation and sample notebook implemented; live capture and AI integration unavailable. Nothing deployed.** The earlier session's test results are historical and are not evidence for this source tree.
 
+## Current product specification
+
+Read [the personal-agent revision](docs/agent-infrastructure/README.md) before the historical handoff. The confirmed first release now includes **one agent email address per user**, email/calendar (`.ics`) invitations and pasted links, immediate/scheduled attendance, and automatic recap delivery to an organizer-approved recipient list. This supersedes the old mailbox deferral, immediate-only joining and auth-only email restriction. The revised PRD, architecture, acceptance matrix and implementation sequence are specifications; those added features are not yet implemented.
+
 ## Run locally
 
 Use Node 22.12+ and npm. Dependencies are pinned in `package-lock.json`.
@@ -56,4 +60,4 @@ The current environment does not contain the previous environment's saved draft 
 
 The original Next.js/Python prototype is preserved under `legacy/` for historical inspection and is not part of the runtime. Tracked environment and bytecode files were removed from the future tree; history was not rewritten. Rotate any credentials previously committed to the public repository.
 
-The specification/reference bundle remains untouched and both SHA-256 manifests were verified (146 handoff files; 135 platform reference files). Bundled historical kit recipes are inactive reference material. No billing, Calendar, managed capture provider, or external VM is included in the rebuilt runtime.
+The historical specification/reference bundle remains untouched and both SHA-256 manifests were verified (146 handoff files; 135 platform reference files). Bundled historical kit recipes are inactive reference material. No billing, Calendar, managed capture provider, or external VM is included in the rebuilt runtime.
