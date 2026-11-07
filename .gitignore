@@ -1,0 +1,13 @@
+node_modules/
+.astro/
+.wrangler/
+dist/
+work/
+.env
+.env.*
+.dev.vars*
+__pycache__/
+*.pyc
+test-results/
+playwright-report/
+docs/implementation/screenshots/

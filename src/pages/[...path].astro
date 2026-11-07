@@ -1,0 +1,9 @@
+---
+import Base from '../layouts/Base.astro';
+import Notebook from '../components/Notebook';
+const path = Astro.url.pathname;
+---
+
+<Base>
+  <Notebook client:load path={path} />
+</Base>

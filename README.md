@@ -1,166 +1,63 @@
-# MeetScript AI
+# MeetScript
 
-**An AI meeting agent that joins Google Meet calls, transcribes them in real time, and lets you query the transcript with natural language — exposed as MCP tools any AI assistant can call.**
+A quiet meeting notebook with precise evidence and visible recording controls.
 
-MeetScript programmatically joins scheduled Google Meet sessions, streams the live audio to Deepgram for real-time speaker-diarized transcription, ingests the transcript into a GroundX-backed RAG store, and uses OpenAI structured outputs to pull summaries and actionable items out of the conversation. The whole pipeline is wrapped in a FastAPI + FastMCP server with SSE transport, so any MCP-compatible AI assistant can drive it.
+This is the recovery rebuild of [Vinci-virtuoso/MeetScript](https://github.com/Vinci-virtuoso/MeetScript). The previous cloud session reported an unpushed implementation; that source was not present in the surviving repository. This branch rebuilds from the checked-in specifications in `docs/cloudflare-rebuild`.
 
----
+**Status: foundation and sample notebook implemented; live capture and AI integration unavailable. Nothing deployed.** The earlier session's test results are historical and are not evidence for this source tree.
 
-## 🎬 Demo
+## Current product specification
 
-<!-- Replace demo.gif below with your converted clip -->
-<p align="center">
-  <img src="https://raw.githubusercontent.com/Vinci-virtuoso/MeetScript/new_test_branch/docs/demo.gif" alt="MeetScript demo" width="720" />
-</p>
+Read [the personal-agent revision](docs/agent-infrastructure/README.md) before the historical handoff. The confirmed first release now includes **one agent email address per user**, email/calendar (`.ics`) invitations and pasted links, immediate/scheduled attendance, and automatic recap delivery to an organizer-approved recipient list. This supersedes the old mailbox deferral, immediate-only joining and auth-only email restriction. The revised PRD, architecture, acceptance matrix and implementation sequence are specifications; those added features are not yet implemented.
 
----
+## Run locally
 
-## 🏗 Architecture
+Use Node 22.12+ and npm. Dependencies are pinned in `package-lock.json`.
 
-```mermaid
-flowchart LR
-    User([User / AI Assistant])
-    UI[Next.js + Tailwind UI]
-    API[FastAPI + FastMCP Server<br/>SSE transport]
-
-    subgraph Automation[Meeting Automation]
-      Selenium[Selenium + Edge WebDriver]
-      Xvfb[Xvfb virtual display]
-      Pulse[PulseAudio virtual sink]
-    end
-
-    DG[Deepgram<br/>real-time STT + diarization]
-    GX[(GroundX<br/>RAG knowledge base)]
-    OAI[OpenAI GPT-4o<br/>structured outputs]
-
-    User --> UI
-    User -. MCP tools .-> API
-    UI -->|HTTP| API
-
-    API --> Selenium
-    Selenium --> Xvfb
-    Selenium --> Pulse
-    Pulse -->|WebSocket stream| DG
-    DG -->|live transcript| API
-
-    API -->|ingest| GX
-    API -->|retrieve context| GX
-    GX --> OAI
-    OAI -->|summary + action items| API
-    API --> UI
-```
-
-**What happens end to end:**
-
-1. User supplies a Meet URL and API keys through the Next.js UI (or an MCP client).
-2. FastMCP server spins up a Selenium-driven Edge browser inside a headless Xvfb display.
-3. Meeting audio is routed through a PulseAudio virtual sink and streamed to Deepgram over WebSockets.
-4. Transcripts land in `transcript.txt` in real time and are ingested into GroundX as a searchable knowledge base.
-5. Queries hit the `search_doc_for_rag_context` MCP tool, which retrieves relevant chunks and passes them to GPT-4o with a Pydantic response schema to return structured summaries and action items.
-
----
-
-## ✨ Features
-
-- **Headless Google Meet agent** — Selenium + Edge WebDriver running inside Xvfb, with persistent browser profiles so 2FA only happens once.
-- **Real-time transcription** — Deepgram streaming API with speaker diarization and live subtitle output (VTT/SRT supported).
-- **RAG on meeting transcripts** — GroundX ingestion and semantic retrieval, scoped per meeting.
-- **Structured summaries** — OpenAI GPT-4o structured outputs return a typed `MeetingTranscriptResponse` with summary, action items, assignees, and deadlines.
-- **MCP-native** — every capability is exposed as an MCP tool over SSE, so Claude Desktop, Cursor, or any MCP client can drive it directly.
-- **Fully containerized** — Docker Compose brings up the browser, virtual display, audio stack, and API server with one command.
-
----
-
-## 🧰 Tech Stack
-
-**Backend:** Python 3.10, FastAPI, FastMCP, Selenium, Deepgram SDK, GroundX, OpenAI SDK, PyAudio
-**Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS
-**Infra:** Docker, Docker Compose, Xvfb, PulseAudio, Microsoft Edge + msedgedriver
-
----
-
-## 🔧 MCP Tools Exposed
-
-| Tool | Purpose |
-|---|---|
-| `echo_tool` | Health check / connectivity test |
-| `transcribe_google_meet_tool` | Join a Meet URL and transcribe for N seconds |
-| `ingest_document` | Push the generated transcript into the GroundX knowledge base |
-| `search_doc_for_rag_context` | Query the transcript and get a structured summary + action items |
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Docker & Docker Compose
-- API keys for: Deepgram, OpenAI, GroundX
-- A Google account available for the agent to sign in with
-
-### Run the backend
-
-```bash
-cd backend
-cp .env.example .env   # fill in GOOGLE_USERNAME, GOOGLE_PASSWORD, DEEPGRAM_API_KEY, MEET_URL
-docker-compose up --build
-```
-
-The FastAPI + FastMCP server starts on `http://localhost:8000` and exposes SSE at `/sse`.
-
-### Run the frontend
-
-```bash
-cd frontend
-npm install
+```sh
+npm ci
+npm run db:migrate
 npm run dev
 ```
 
-Open `http://localhost:3000`, drop in your Meet URL and API keys, and click **Join Meeting & Extract Transcript**.
+Open `http://localhost:4321` or `/sample`. Sample actions persist under sample-only browser storage keys. Private routes use the API and never substitute sample data on errors.
 
-### Drive it from an MCP client
+In restricted cloud environments, use writable cache/config directories and disable optional telemetry:
 
-Point any MCP client at `http://localhost:8000/sse`:
-
-```
-"Join the meeting at https://meet.google.com/abc-defg-hij and transcribe for 30 minutes"
-"What were the main discussion points and who was assigned what?"
-"List every action item with its deadline"
-```
-
----
-
-## 📁 Project Structure
-
-```
-MeetScript/
-├── backend/
-│   ├── server.py            # FastAPI + FastMCP server, MCP tool definitions
-│   ├── script.py            # Selenium Google Meet automation
-│   ├── realtime_stream.py   # Deepgram WebSocket streaming + VTT/SRT output
-│   ├── Dockerfile           # Python + Edge + Xvfb + PulseAudio
-│   ├── docker-compose.yaml
-│   └── entrypoint.sh        # Boots Xvfb, PulseAudio, then server.py
-├── frontend/                # Next.js 15 + Tailwind UI
-└── client.py                # Reference MCP + OpenAI client (SSE)
+```sh
+export npm_config_cache=/tmp/meetscript-npm
+export XDG_CONFIG_HOME=/tmp/meetscript-config
+export ASTRO_TELEMETRY_DISABLED=1
+npm ci
+npm run verify
 ```
 
----
+`npm run verify` runs type checks, formatting checks, a targeted secret/file scan, 49 domain/Worker/D1/Durable Object tests, production build, and Playwright/axe checks. Browser tests use the **built Worker** through local Wrangler, with `/usr/bin/chromium` by default. Set `CHROMIUM_PATH` to another installed Chromium executable. Tests save reproducible route screenshots under `docs/implementation/screenshots`. Stop an existing dev server before verification so port 4321 is free (`npx astro dev stop`). These tests use fixture data and do not pass live acceptance.
 
-## 🗺 Roadmap
+## Implemented in this recovery
 
-- [ ] Multi-meeting concurrency (one container per meeting)
-- [ ] Zoom and Teams adapters (same MCP surface)
-- [ ] Per-meeting GroundX buckets so transcripts don't collide
-- [ ] Webhook notifications on meeting end with signed summary URL
-- [ ] Streaming action-item extraction during the call, not just after
+- Astro/React interface with self-hosted Inter, light/dark/system themes, responsive navigation, native dialogs, and keyboard tabs.
+- Labelled, isolated sample overview, meetings, minutes, transcripts, cited answers, action edits, and settings; honest audio-unavailable states.
+- Hono API, D1 migration, verified email OTP contracts, rotating access/refresh sessions, active membership checks, creator-private meeting ACLs, revision-checked actions, and workspace settings.
+- Same-origin mutation checks, rate limits, bounded JSON bodies, generic private-resource failures, and private no-store responses.
+- Strict Meet URL validation and affirmative disclosure schema; join always fails closed until capture is implemented and G0 is passed.
+- Durable Object prototypes for serialized workspace quota reservations and fenced session/stop events. These are tested in workerd, but not connected to a live Container.
+- Immediate meeting tombstones and bounded, retryable cleanup for the locally implemented content. Cleanup refuses to claim success for unverified live sessions or Vectorize integration.
 
----
+## Still required
 
-## 📝 License
+Actual Cloudflare Container capture, global quota coordination, ingestion, real Workers AI transcription/minutes, Vectorize retrieval, complete exports/range playback, membership enrollment/revocation UI, account/workspace deletion, automatic retention, operational recovery/drain/restore, and live preview acceptance remain unfinished. See `docs/implementation/REPORT.md` and the original acceptance checklist. Do not enable capture by changing flags.
 
-MIT
+Email OTP needs an owner-approved `MAILER` service binding. There is no development endpoint that exposes codes. Deployed authentication also requires configured Turnstile. The UI integration for the Turnstile challenge remains pending, so deployed sign-in is not release-ready.
 
----
+## Configuration and authorization
 
-Built by [Akinropo Olabisi](https://github.com/Vinci-virtuoso) — Voice AI Engineer working on production LLM systems, conversational AI, and agentic workflows.
+`wrangler.local.jsonc` contains local-only names and a placeholder D1 ID; **do not deploy it**. No production or preview resource IDs are inherited. Cloudflare credentials belong in environment secret settings, never source files or chat. Names: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`; app bindings are documented in `docs/implementation/RUNBOOK.md`.
+
+The current environment does not contain the previous environment's saved draft credentials. A real consented test meeting and approved disclosure/stop procedure are required for G0. No production DNS, purchases, or deployment have been performed.
+
+## Legacy and specifications
+
+The original Next.js/Python prototype is preserved under `legacy/` for historical inspection and is not part of the runtime. Tracked environment and bytecode files were removed from the future tree; history was not rewritten. Rotate any credentials previously committed to the public repository.
+
+The historical specification/reference bundle remains untouched and both SHA-256 manifests were verified (146 handoff files; 135 platform reference files). Bundled historical kit recipes are inactive reference material. No billing, Calendar, managed capture provider, or external VM is included in the rebuilt runtime.

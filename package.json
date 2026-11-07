@@ -1,0 +1,45 @@
+{
+  "name": "meetscript",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev --host 0.0.0.0",
+    "build": "astro build",
+    "check": "astro check && tsc -p tsconfig.server.json --noEmit",
+    "test": "vitest run",
+    "test:browser": "playwright test",
+    "verify": "npm run check && npm run lint && npm run security && npm test && npm run build && npm run test:browser",
+    "db:migrate": "wrangler d1 migrations apply meetscript-local --local --config wrangler.local.jsonc",
+    "security": "node scripts/security.mjs",
+    "lint": "prettier --check \"src/**/*.{ts,tsx,astro,css}\" \"tests/**/*.ts\" \"*.{ts,mjs,json,jsonc}\" \"scripts/*.mjs\"",
+    "preview:local": "wrangler dev --config dist/server/wrangler.json --port 4321 --local"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "14.4.6",
+    "@astrojs/react": "7.1.4",
+    "@fontsource/inter": "5.3.0",
+    "astro": "7.4.7",
+    "hono": "4.13.17",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "@axe-core/playwright": "4.14.0",
+    "@cloudflare/vitest-plugin": "1.6.0",
+    "@cloudflare/workers-types": "5.20261107.1",
+    "@playwright/test": "1.65.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "prettier": "3.9.10",
+    "prettier-plugin-astro": "1.1.2",
+    "typescript": "6.0.3",
+    "vitest": "5.0.4",
+    "wrangler": "4.158.0"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "meetscript-tests",
+  "main": "src/server/jobs.ts",
+  "compatibility_date": "2026-11-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "APP_ORIGIN": "https://test.example",
+    "ENVIRONMENT": "local",
+    "CONSENT_VERSION": "draft-1",
+    "CAPTURE_ENABLED": "false",
+    "G0_PASSED": "false",
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "test", "database_id": "test" },
+  ],
+  "r2_buckets": [{ "binding": "RECORDINGS", "bucket_name": "test" }],
+  "durable_objects": {
+    "bindings": [
+      { "name": "WORKSPACE_USAGE", "class_name": "WorkspaceUsage" },
+      { "name": "MEETING_SESSION", "class_name": "MeetingSession" },
+    ],
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["WorkspaceUsage", "MeetingSession"] },
+  ],
+}

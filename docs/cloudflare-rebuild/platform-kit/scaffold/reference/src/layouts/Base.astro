@@ -1,0 +1,26 @@
+---
+// The head shared by every page. /tokens.css is a byte copy of the approved design tokens and is
+// loaded first on every page. The calculator page adds /styles.css; the account screens add the
+// Tailwind entry.
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="preload" href="/fonts/plus-jakarta-sans-500-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/tokens.css" />
+    <slot name="head" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

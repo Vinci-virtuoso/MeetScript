@@ -1,0 +1,129 @@
+/* Tailwind v4 entry for the account, splits and billing screens. The design tokens are NOT
+   redeclared here: the page loads /tokens.css (a byte copy of .spec/design/tokens.css), and this
+   file maps shadcn's semantic names onto those custom properties. `inline reference` means
+   Tailwind writes `var(--color-bg)` straight into the utility and emits no variable of its own,
+   so light, dark and system themes keep working through [data-theme] without any `dark:` class
+   and there is no self-referencing `--color-border: var(--color-border)` cycle. */
+@import "tailwindcss";
+@import "./font.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@source "../";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme inline reference {
+  /* shadcn semantic names -> rent-split tokens */
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+  --color-card: var(--color-surface-raised);
+  --color-card-foreground: var(--color-text);
+  --color-popover: var(--color-surface-raised);
+  --color-popover-foreground: var(--color-text);
+  --color-primary: var(--color-accent);
+  --color-primary-foreground: var(--color-accent-text);
+  --color-secondary: var(--color-surface);
+  --color-secondary-foreground: var(--color-text);
+  --color-muted: var(--color-surface);
+  --color-muted-foreground: var(--color-text-muted);
+  --color-accent: var(--color-accent-soft);
+  --color-accent-foreground: var(--color-text);
+  --color-destructive: var(--color-danger);
+  --color-destructive-foreground: var(--color-accent-text);
+  --color-border: var(--color-border);
+  --color-input: var(--color-border-strong);
+  --color-ring: var(--color-focus);
+
+  /* rent-split names for direct use in islands and pages */
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-border-strong: var(--color-border-strong);
+  --color-brand: var(--color-accent);
+  --color-brand-hover: var(--color-accent-hover);
+  --color-brand-text: var(--color-accent-text);
+  --color-brand-soft: var(--color-accent-soft);
+  --color-danger: var(--color-danger);
+  --color-danger-text: var(--color-danger-text);
+  --color-danger-soft: var(--color-danger-soft);
+  --color-success: var(--color-success);
+  --color-success-text: var(--color-success-text);
+  --color-success-soft: var(--color-success-soft);
+  --color-warning: var(--color-warning);
+  --color-warning-text: var(--color-warning-text);
+  --color-warning-soft: var(--color-warning-soft);
+  --color-info: var(--color-info);
+  --color-info-text: var(--color-info-text);
+  --color-info-soft: var(--color-info-soft);
+  --color-skeleton: var(--color-skeleton);
+
+  --font-sans: var(--font-body);
+
+  --text-xs: var(--text-xs);
+  --text-sm: var(--text-sm);
+  --text-base: var(--text-base);
+  --text-lg: var(--text-lg);
+  --text-xl: var(--text-xl);
+  --text-2xl: var(--text-2xl);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-lg);
+  --radius-full: var(--radius-full);
+
+  --radius-2xl: var(--radius-lg);
+  --radius-3xl: var(--radius-lg);
+  --radius-4xl: var(--radius-full);
+  --font-heading: var(--font-body);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-pop: var(--shadow-pop);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+    }
+  }
+  html {
+    background: var(--color-bg);
+    @apply font-sans;
+  }
+  body {
+    margin: 0;
+    color: var(--color-text);
+    background: var(--color-bg);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-normal);
+    overflow-wrap: break-word;
+    @apply bg-background text-foreground;
+  }
+  * {
+    border-color: var(--color-border);
+    @apply border-border outline-ring/50;
+  }
+  :focus-visible {
+    outline: var(--border-strong) solid var(--color-focus);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}

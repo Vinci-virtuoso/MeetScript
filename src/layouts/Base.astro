@@ -1,0 +1,38 @@
+---
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '../styles/global.css';
+const { title = 'MeetScript — your meetings, with receipts.' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="A quiet meeting notebook with precise evidence and visible recording controls."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <title>{title}</title>
+    <script is:inline>
+      try {
+        const t = localStorage.getItem('ms-theme') || 'system';
+        document.documentElement.dataset.theme =
+          t === 'system'
+            ? matchMedia('(prefers-color-scheme:dark)').matches
+              ? 'dark'
+              : 'light'
+            : t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">
+      Skip to content
+    </a>
+    <slot />
+  </body>
+</html>

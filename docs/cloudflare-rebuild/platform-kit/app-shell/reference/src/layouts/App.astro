@@ -1,0 +1,55 @@
+---
+// The frame of the account, splits and billing screens: wordmark, three links, the account state,
+// and the theme switch (same control as the calculator page, same session-only behaviour).
+import Base from "./Base.astro";
+import { AccountMenu } from "../components/AccountMenu";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  current?: "calculator" | "splits" | "pricing" | "plan";
+}
+const { title, description, current } = Astro.props;
+const next = Astro.url.pathname + Astro.url.search;
+const link = (active: boolean) =>
+  `rounded-md px-2 py-1 text-sm underline-offset-4 hover:underline ${active ? "font-medium text-text" : "text-text-muted"}`;
+---
+
+<Base title={`${title} | rent-split`} description={description}>
+  <a
+    href="#main"
+    class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-20 focus:rounded-md focus:bg-card focus:px-3 focus:py-2 focus:shadow-raised"
+  >
+    Skip to content
+  </a>
+  <div class="mx-auto flex min-h-screen w-full max-w-[var(--layout-page)] flex-col px-4 md:px-6">
+    <header class="flex flex-wrap items-center gap-x-4 gap-y-3 py-4">
+      <a href="/" class="text-lg font-semibold tracking-tight text-text">rent-split</a>
+      <nav aria-label="Pages" class="flex items-center gap-1">
+        <a href="/" class={link(current === "calculator")} aria-current={current === "calculator" ? "page" : undefined}>Calculator</a>
+        <a href="/splits" class={link(current === "splits")} aria-current={current === "splits" ? "page" : undefined}>Saved splits</a>
+        <a href="/pricing" class={link(current === "pricing")} aria-current={current === "pricing" ? "page" : undefined}>Pricing</a>
+      </nav>
+      <div class="ml-auto flex items-center gap-3">
+        <label class="flex items-center gap-2 text-sm text-text-muted">
+          <span>Theme</span>
+          <select id="theme" name="theme" autocomplete="off" class="h-11 rounded-md border border-input bg-card px-2 text-base text-text">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="system" selected>System</option>
+          </select>
+        </label>
+        <AccountMenu client:load next={next} />
+      </div>
+    </header>
+    <main id="main" class="flex-1 pb-12">
+      <slot />
+    </main>
+    <footer class="py-6 text-xs text-text-muted">rent-split. The calculator runs in your browser; saved splits live in your account.</footer>
+  </div>
+  <script>
+    import { mountTheme } from "../../public/js/theme.js";
+    mountTheme(document);
+  </script>
+</Base>
